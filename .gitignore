@@ -359,7 +359,7 @@ cmake-build-*
 
 # some Android-specific build stuff
 3rdparty/SDL
-3rdparty/hlsdk-portable
+# 3rdparty/hlsdk-portable is vendored as a git subtree in Thor Half-Life
 3rdparty/ffmpeg
 !scripts/build-ninja.py
 
