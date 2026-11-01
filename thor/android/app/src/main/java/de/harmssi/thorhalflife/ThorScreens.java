@@ -21,12 +21,14 @@ final class ThorScreens implements DisplayManager.DisplayListener {
     private final DisplayManager displays;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final String clientLib;
+    private final String rodir;
     private Presentation presentation;
     private HevDeck deck;
 
-    ThorScreens(Activity activity, String clientLib) {
+    ThorScreens(Activity activity, String clientLib, String rodir) {
         this.activity = activity;
         this.clientLib = clientLib;
+        this.rodir = rodir;
         this.displays = (DisplayManager) activity.getSystemService(Context.DISPLAY_SERVICE);
     }
 
@@ -62,7 +64,7 @@ final class ThorScreens implements DisplayManager.DisplayListener {
     void stop() {
         displays.unregisterDisplayListener(this);
         if (deck != null) {
-            deck.stop();
+            deck.release();
         }
         if (presentation != null) {
             presentation.dismiss();
@@ -100,7 +102,7 @@ final class ThorScreens implements DisplayManager.DisplayListener {
                 presentation.getContext().getResources().getConfiguration());
         cfg.setLocales(activity.getResources().getConfiguration().getLocales());
         Context deckCtx = presentation.getContext().createConfigurationContext(cfg);
-        deck = new HevDeck(deckCtx, clientLib);
+        deck = new HevDeck(deckCtx, clientLib, rodir);
         presentation.setContentView(deck);
         presentation.getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
                 | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);

@@ -58,7 +58,8 @@ public class GameActivity extends SDLActivity {
             return; // SDL shows its own error dialog
         }
         if (dualScreen) {
-            screens = new ThorScreens(this, clientLibPath());
+            screens = new ThorScreens(this, clientLibPath(),
+                    orDefault(intent.getStringExtra(EXTRA_RODIR), GameData.DEFAULT_RODIR));
             screens.start();
         }
         Log.i(TAG, "engine starting, dual=" + dualScreen);

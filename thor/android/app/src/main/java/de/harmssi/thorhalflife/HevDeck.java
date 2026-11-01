@@ -54,6 +54,9 @@ public class HevDeck extends View {
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final String clientLib;
+    private final HudSprites sprites;
+    private final Paint iconPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
+    private final RectF iconDst = new RectF();
 
     // --- snapshot
     private boolean connected, inGame, deckMode;
@@ -110,9 +113,10 @@ public class HevDeck extends View {
         }
     };
 
-    public HevDeck(Context context, String clientLib) {
+    public HevDeck(Context context, String clientLib, String rodir) {
         super(context);
         this.clientLib = clientLib;
+        this.sprites = new HudSprites(rodir, this::postInvalidate);
         Ui.init(context);
         setBackgroundColor(Ui.BG);
         setHapticFeedbackEnabled(true);
@@ -125,6 +129,11 @@ public class HevDeck extends View {
 
     public void stop() {
         handler.removeCallbacks(tick);
+    }
+
+    public void release() {
+        stop();
+        sprites.shutdown();
     }
 
     private String str(int id) {
@@ -569,6 +578,18 @@ public class HevDeck extends View {
             paint.setStyle(Paint.Style.FILL);
         }
         float x = b.left + 14 * s;
+        // weapon silhouette from the user's own HUD sprites (if available)
+        android.graphics.Bitmap icon = sprites.weapon(w.name);
+        if (icon != null) {
+            float maxW = b.width() * 0.5f, maxH = b.height() - 48 * s;
+            float sc = Math.min(maxW / icon.getWidth(), maxH / icon.getHeight());
+            float iw = icon.getWidth() * sc, ih = icon.getHeight() * sc;
+            float ir = b.right - 10 * s, ib = b.bottom - 12 * s;
+            iconDst.set(ir - iw, ib - ih, ir, ib);
+            int tint = active ? Ui.AMBER : w.selectable ? Ui.alpha(Ui.TEXT_2, 0.55f) : Ui.alpha(Ui.TEXT_3, 0.35f);
+            iconPaint.setColorFilter(new android.graphics.PorterDuffColorFilter(tint, android.graphics.PorterDuff.Mode.SRC_IN));
+            c.drawBitmap(icon, null, iconDst, iconPaint);
+        }
         String name = Names.weapon(w.name);
         bodySemi.setColor(!w.selectable ? Ui.TEXT_3 : active ? Ui.AMBER_2 : Ui.TEXT);
         bodySemi.setTextSize(17 * s);
@@ -577,8 +598,9 @@ public class HevDeck extends View {
         // ammo line
         float ay = b.bottom - 16 * s;
         if (w.max1 == -1 || w.ammo1 < 0) {
-            monoSmall.setColor(Ui.TEXT_3);
-            c.drawText(str(R.string.deck_melee).toUpperCase(), x, ay, microDim);
+            if (icon == null) {
+                c.drawText(str(R.string.deck_melee).toUpperCase(), x, ay, microDim);
+            }
         } else {
             int total = Math.max(0, w.clip) + Math.max(0, w.ammo1);
             int col = total == 0 ? Ui.RED_2 : active ? Ui.TEXT : Ui.TEXT_2;
@@ -596,7 +618,7 @@ public class HevDeck extends View {
             if (w.ammo2 >= 0) {
                 String sec = "+" + w.ammo2;
                 monoSmall.setColor(w.ammo2 > 0 ? Ui.AMBER_2 : Ui.TEXT_3);
-                c.drawText(sec, b.right - 12 * s - monoSmall.measureText(sec), ay, monoSmall);
+                c.drawText(sec, mx, ay, monoSmall);
             }
             // reserve bar
             if (w.max1 > 0) {
@@ -863,7 +885,7 @@ public class HevDeck extends View {
             RectF b = buttons[i];
             boolean pressed = pressedButton == i && now - pressAt < 220;
             boolean lit = (i == B_FLASH && flOn != 0 && inGame) || (i == B_LOAD && armed);
-            boolean enabled = i == B_MENU || inGame;
+            boolean enabled = i == B_MENU || inGame || (i == B_LOAD && connected);
             int fill = pressed ? Ui.alpha(Ui.AMBER, 0.22f) : lit ? Ui.alpha(Ui.AMBER, 0.12f) : Ui.PANEL;
             Ui.panel(c, b, Ui.RADIUS * s, fill, lit || pressed ? Ui.AMBER : Ui.LINE, paint);
             String n = (i == B_LOAD && armed ? str(R.string.btn_confirm) : names[i]).toUpperCase();
@@ -946,7 +968,7 @@ public class HevDeck extends View {
 
     private void button(int i) {
         long now = SystemClock.uptimeMillis();
-        if (i != B_MENU && !inGame) {
+        if (i != B_MENU && !(i == B_LOAD && connected) && !inGame) {
             return;
         }
         performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
