@@ -72,6 +72,11 @@ final class GameData {
             Log.w(GameActivity.TAG, "cannot create " + valve);
             return;
         }
+        // Until the engine has saved its own config.cfg here (on a clean quit), the read-only
+        // config from the data folder is used: keep applying the Thor layout until then.
+        if (!new File(valve, "config.cfg").isFile()) {
+            applyBinds = true;
+        }
         StringBuilder cfg = new StringBuilder();
         cfg.append("// Thor Half-Life: written by the app on every launch, do not edit\n");
         cfg.append("thor_deck ").append(dual ? 1 : 0).append('\n');
