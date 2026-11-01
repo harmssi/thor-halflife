@@ -1,0 +1,68 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'de.harmssi.thorhalflife'
+    compileSdk 35
+    buildToolsVersion '35.0.0'
+
+    // Fixed signing key (kept on the build host under $THOR_BUILD_DIR/keystore) so later builds
+    // install over the existing app.
+    signingConfigs {
+        thor {
+            storeFile file(System.getenv('THOR_KEYSTORE') ?: '/work/keystore/thorhalflife.jks')
+            storePassword System.getenv('THOR_KEYSTORE_PASS') ?: 'thorhalflife'
+            keyAlias 'thorhalflife'
+            keyPassword System.getenv('THOR_KEYSTORE_PASS') ?: 'thorhalflife'
+        }
+    }
+
+    defaultConfig {
+        applicationId 'de.harmssi.thorhalflife'
+        minSdk 30
+        targetSdk 33
+        versionCode (project.hasProperty('thorVersionCode') ? (project.thorVersionCode as Integer) : 1)
+        versionName (project.hasProperty('thorVersionName') ? project.thorVersionName : '0.1.0')
+        ndk {
+            abiFilters 'arm64-v8a'
+        }
+    }
+
+    sourceSets {
+        main {
+            // java-sdl: org/libsdl/app/*.java from the SDL2 source archive (staged by the build script)
+            java.srcDirs += 'src/main/java-sdl'
+            jniLibs.srcDirs = ['src/main/jniLibs']
+            // assets-xash: FWGS xash-extras (engine fonts, gamecontrollerdb, gamepad presets), staged
+            assets.srcDirs = ['src/main/assets', 'src/main/assets-xash']
+        }
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.thor
+        }
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.thor
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging true
+            keepDebugSymbols += '**/*.so'
+        }
+    }
+
+    lint {
+        abortOnError false
+        checkReleaseBuilds false
+    }
+}

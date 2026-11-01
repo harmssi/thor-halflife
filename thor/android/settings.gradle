@@ -1,0 +1,19 @@
+// Thor Half-Life - Android shell. Native libraries (SDL2, Xash3D FWGS, hlsdk client/server, mainui,
+// thorbridge) are built OUTSIDE Gradle (thor/docker-build.sh) and staged into
+// app/src/main/jniLibs/arm64-v8a. Gradle only compiles Java and packages.
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+rootProject.name = "ThorHalfLife"
+include ':app'

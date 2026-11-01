@@ -23,6 +23,7 @@
 #include <math.h>
 
 #include "hud.h"
+#include "thor_deck.h"
 #include "cl_util.h"
 #include "parsemsg.h"
 #include <string.h>
@@ -216,8 +217,8 @@ int CHudHealth::Draw( float flTime )
 	GetPainColor( r, g, b );
 	ScaleColors( r, g, b, a );
 
-	// Only draw health if we have the suit.
-	if( gHUD.m_iWeaponBits & ( 1 << ( WEAPON_SUIT ) ) )
+	// Only draw health if we have the suit. (Thor Half-Life: on the second screen instead)
+	if( ( gHUD.m_iWeaponBits & ( 1 << ( WEAPON_SUIT ) ) ) && !ThorDeck_HideHud() )
 	{
 		HealthWidth = gHUD.GetSpriteRect( gHUD.m_HUD_number_0 ).right - gHUD.GetSpriteRect( gHUD.m_HUD_number_0 ).left;
 		int CrossWidth = gHUD.GetSpriteRect( m_HUD_cross ).right - gHUD.GetSpriteRect( m_HUD_cross ).left;
@@ -408,9 +409,12 @@ int CHudHealth::DrawDamage( float flTime )
 		{
 			pdmg = &m_dmg[i];
 
-			// Draw all the items
-			SPR_Set( gHUD.GetSprite( m_HUD_dmg_bio + i ), r, g, b );
-			SPR_DrawAdditive( 0, pdmg->x, pdmg->y, &gHUD.GetSpriteRect( m_HUD_dmg_bio + i ) );
+			// Draw all the items (Thor Half-Life: hazards are shown on the second screen)
+			if( !ThorDeck_HideHud() )
+			{
+				SPR_Set( gHUD.GetSprite( m_HUD_dmg_bio + i ), r, g, b );
+				SPR_DrawAdditive( 0, pdmg->x, pdmg->y, &gHUD.GetSpriteRect( m_HUD_dmg_bio + i ) );
+			}
 
 			pdmg->fExpire = Q_min( flTime + DMG_IMAGE_LIFE, pdmg->fExpire );
 

@@ -19,6 +19,7 @@
 //
 
 #include "hud.h"
+#include "thor_deck.h"
 #include "cl_util.h"
 #include "parsemsg.h"
 
@@ -77,6 +78,9 @@ int CHudBattery::Draw( float flTime )
 		return 1;
 #endif // MOBILE_HACKS
 	if( gHUD.m_iHideHUDDisplay & HIDEHUD_HEALTH )
+		return 1;
+
+	if( ThorDeck_HideHud() ) // armor is shown on the second screen
 		return 1;
 
 	int r, g, b, x, y, a;

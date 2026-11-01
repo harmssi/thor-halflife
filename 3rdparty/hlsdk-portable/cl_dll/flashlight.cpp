@@ -19,6 +19,7 @@
 //
 
 #include "hud.h"
+#include "thor_deck.h"
 #include "cl_util.h"
 #include "parsemsg.h"
 
@@ -102,7 +103,7 @@ int CHudFlashlight::Draw( float flTime )
 			gMobileEngfuncs->pfnTouchHideButtons( "flashlight", !show );
 		}
 	}
-	if( !show )
+	if( !show || ThorDeck_HideHud() ) // flashlight charge is shown on the second screen
 		return 1;
 
 	int r, g, b, x, y, a;

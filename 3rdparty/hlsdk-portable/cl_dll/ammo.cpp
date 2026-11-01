@@ -19,6 +19,7 @@
 //
 
 #include "hud.h"
+#include "thor_deck.h"
 #include "cl_util.h"
 #include "parsemsg.h"
 #include "pm_shared.h"
@@ -853,6 +854,10 @@ int CHudAmmo::Draw( float flTime )
 		return 1;
 
 	if( ( gHUD.m_iHideHUDDisplay & ( HIDEHUD_WEAPONS | HIDEHUD_ALL ) ) )
+		return 1;
+
+	// Thor Half-Life: weapon menu, pickup history and ammo live on the second screen
+	if( ThorDeck_HideHud() )
 		return 1;
 
 	// Draw Weapon Menu
