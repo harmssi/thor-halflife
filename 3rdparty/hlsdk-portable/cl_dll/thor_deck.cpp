@@ -66,7 +66,12 @@ static float g_unUseAt = -1.0f;
 struct ThorDeckAccess
 {
 	static int Battery() { return gHUD.m_Battery.m_iBat; }
+#if defined( THOR_DECK_NIGHTVISION )
+	// Opposing Force: the "Flashlight" message drives the night vision (CHudNightvision)
+	static int FlashOn() { return gHUD.m_Nightvision.m_fOn; }
+#else
 	static int FlashOn() { return gHUD.m_Flash.m_fOn; }
+#endif
 	static int FlashBat() { return gHUD.m_Flash.m_iBat; }
 	static int Geiger() { return gHUD.m_Geiger.m_iGeigerRange; }
 	static int Train() { return gHUD.m_Train.m_iPos; }
@@ -384,7 +389,7 @@ static void BuildSnapshot( float now )
 	o.add( "\"water\":%d,\"air\":%.1f,\"ground\":%d,\"fallv\":%.0f,\"speed\":%.0f,\"move\":%d,", g_waterlevel, air, g_onground,
 		g_fallVelocity, g_speed, g_movetype );
 	o.add( "\"yaw\":%.1f,\"pitch\":%.1f,\"pos\":[%.0f,%.0f,%.0f],", ang[1], ang[0], org[0], org[1], org[2] );
-	o.add( "\"cur\":%d,\"sel\":%d,\"w\":[", cur ? cur->iId : 0, pending ? pending->iId : 0 );
+	o.add( "\"slots\":%d,\"cur\":%d,\"sel\":%d,\"w\":[", MAX_WEAPON_SLOTS, cur ? cur->iId : 0, pending ? pending->iId : 0 );
 
 	bool first = true;
 	for( int s = 0; s < MAX_WEAPON_SLOTS; s++ )

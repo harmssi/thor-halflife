@@ -100,6 +100,7 @@ typedef struct
 //
 class CHudHealth : public CHudBase
 {
+	friend struct ThorDeckAccess; // thor_deck.cpp: read-only HUD snapshot
 public:
 	virtual int Init( void );
 	virtual int VidInit( void );

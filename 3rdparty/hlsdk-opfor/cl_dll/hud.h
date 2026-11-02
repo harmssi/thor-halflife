@@ -101,6 +101,7 @@ struct HUDLIST
 //
 class CHudAmmo : public CHudBase
 {
+	friend struct ThorDeckAccess; // thor_deck.cpp: read-only HUD snapshot
 public:
 	int Init( void );
 	int VidInit( void );
@@ -175,6 +176,7 @@ private:
 //
 class CHudGeiger: public CHudBase
 {
+	friend struct ThorDeckAccess; // thor_deck.cpp: read-only HUD snapshot
 public:
 	int Init( void );
 	int VidInit( void );
@@ -191,6 +193,7 @@ private:
 //
 class CHudTrain : public CHudBase
 {
+	friend struct ThorDeckAccess; // thor_deck.cpp: read-only HUD snapshot
 public:
 	int Init( void );
 	int VidInit( void );
@@ -375,6 +378,7 @@ private:
 //
 class CHudBattery : public CHudBase
 {
+	friend struct ThorDeckAccess; // thor_deck.cpp: read-only HUD snapshot
 public:
 	int Init( void );
 	int VidInit( void );
@@ -396,6 +400,7 @@ private:
 //
 class CHudNightvision : public CHudBase
 {
+	friend struct ThorDeckAccess; // thor_deck.cpp: read-only HUD snapshot
 public:
 	int Init( void );
 	int VidInit( void );
@@ -416,6 +421,7 @@ private:
 //
 class CHudFlashlight: public CHudBase
 {
+	friend struct ThorDeckAccess; // thor_deck.cpp: read-only HUD snapshot
 public:
 	int Init( void );
 	int VidInit( void );

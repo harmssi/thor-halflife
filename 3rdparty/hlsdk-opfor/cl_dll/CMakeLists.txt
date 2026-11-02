@@ -26,6 +26,7 @@ project (CLDLL)
 set (CLDLL_LIBRARY client)
 
 add_definitions(-DCLIENT_DLL)
+add_definitions(-DTHOR_DECK_NIGHTVISION) # Thor Half-Life: deck reads the night vision state
 
 if(NOT MSVC)
 	add_compile_options(-fno-exceptions) # GCC/Clang flag
@@ -128,6 +129,7 @@ set (CLDLL_SOURCES
 	StudioModelRenderer.cpp
 	text_message.cpp
 	train.cpp
+	thor_deck.cpp
 	tri.cpp
 	util.cpp
 	view.cpp

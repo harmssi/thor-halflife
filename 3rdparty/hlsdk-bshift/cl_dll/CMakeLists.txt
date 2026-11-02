@@ -117,6 +117,7 @@ set (CLDLL_SOURCES
 	StudioModelRenderer.cpp
 	text_message.cpp
 	train.cpp
+	thor_deck.cpp
 	tri.cpp
 	util.cpp
 	view.cpp

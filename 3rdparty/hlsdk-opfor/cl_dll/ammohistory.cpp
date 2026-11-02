@@ -18,6 +18,7 @@
 
 
 #include "hud.h"
+#include "thor_deck.h"
 #include "cl_util.h"
 #include "parsemsg.h"
 
@@ -48,6 +49,8 @@ void HistoryResource::AddToHistory( int iType, int iId, int iCount )
 	if( iType == HISTSLOT_AMMO && !iCount )
 		return;  // no amount, so don't add
 
+	ThorDeck_Pickup( iType, iId, iCount, NULL );
+
 	if( ( ( ( AMMO_PICKUP_GAP * iCurrentHistorySlot ) + AMMO_PICKUP_PICK_HEIGHT ) > AMMO_PICKUP_HEIGHT_MAX ) || ( iCurrentHistorySlot >= MAX_HISTORY ) )
 	{
 		// the pic would have to be drawn too high
@@ -68,6 +71,8 @@ void HistoryResource::AddToHistory( int iType, const char *szName, int iCount )
 {
 	if( iType != HISTSLOT_ITEM )
 		return;
+
+	ThorDeck_Pickup( iType, 0, iCount, szName );
 
 	if( ( ( ( AMMO_PICKUP_GAP * iCurrentHistorySlot ) + AMMO_PICKUP_PICK_HEIGHT ) > AMMO_PICKUP_HEIGHT_MAX ) || ( iCurrentHistorySlot >= MAX_HISTORY ) )
 	{

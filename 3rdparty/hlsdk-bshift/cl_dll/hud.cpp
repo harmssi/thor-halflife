@@ -19,6 +19,7 @@
 //
 
 #include "hud.h"
+#include "thor_deck.h"
 #include "cl_util.h"
 #include <string.h>
 #include <stdio.h>
@@ -292,6 +293,8 @@ int __MsgFunc_AllowSpec( const char *pszName, int iSize, void *pbuf )
 // This is called every time the DLL is loaded
 void CHud::Init( void )
 {
+	ThorDeck_Init(); // Thor Half-Life: second-screen HEV deck
+
 	HOOK_MESSAGE( Logo );
 	HOOK_MESSAGE( ResetHUD );
 	HOOK_MESSAGE( GameMode );

@@ -19,6 +19,7 @@
 //
 
 #include "hud.h"
+#include "thor_deck.h"
 #include "cl_util.h"
 #include "netadr.h"
 #include "parsemsg.h"
@@ -143,6 +144,8 @@ char DLLEXPORT HUD_PlayerMoveTexture( char *name )
 void DLLEXPORT HUD_PlayerMove( struct playermove_s *ppmove, int server )
 {
 	PM_Move( ppmove, server );
+	if( !server )
+		ThorDeck_PlayerMove( ppmove );
 }
 
 int DLLEXPORT Initialize( cl_enginefunc_t *pEnginefuncs, int iVersion )
@@ -287,6 +290,7 @@ Called by engine every frame that client .dll is loaded
 void DLLEXPORT HUD_Frame( double time )
 {
 	GetClientVoiceMgr()->Frame(time);
+	ThorDeck_Frame( time );
 }
 
 /*

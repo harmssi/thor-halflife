@@ -19,6 +19,7 @@
 //
 
 #include "hud.h"
+#include "thor_deck.h"
 #include "cl_util.h"
 #include "parsemsg.h"
 
@@ -72,6 +73,9 @@ int CHudBattery::MsgFunc_Battery( const char *pszName,  int iSize, void *pbuf )
 int CHudBattery::Draw( float flTime )
 {
 	if( gHUD.m_iHideHUDDisplay & HIDEHUD_HEALTH )
+		return 1;
+
+	if( ThorDeck_HideHud() ) // armor is shown on the second screen
 		return 1;
 
 	int r, g, b, x, y, a;
