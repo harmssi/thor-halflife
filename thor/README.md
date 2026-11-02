@@ -127,6 +127,15 @@ same freevgui). The Thor changes in each tree: `cl_dll/thor_deck.*`, the HUD hid
 `ammo.cpp`, `ammohistory.cpp`, `battery.cpp`, `flashlight.cpp`, `health.cpp`, the hooks in
 `cdll_int.cpp`/`hud.cpp`, `friend struct ThorDeckAccess` in `hud.h`/`health.h`.
 
+## Picture / gamma
+
+The engine uses the GoldSrc gamma model (`gamma` 2.5, `brightness`, `texgamma` 2.0, `lightgamma`
+2.5, `engine/client/gamma.c`); the values come from the game's own `config.cfg` (Steam defaults:
+`gamma 2.5`, `brightness 1`) and are not touched by the app. A washed-out picture (black shown as
+~30 % grey) was not gamma: Android drew its translucent *default focus highlight* over the SDL
+surface after the engine had started/stopped text input (console). `GameActivity` disables the
+focus highlight on the game views.
+
 ## Performance
 
 Measured on the Thor (Snapdragon 8 Gen 2) with the GLES3 renderer (`-ref gles3compat`, default),

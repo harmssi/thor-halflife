@@ -64,12 +64,31 @@ public class GameActivity extends SDLActivity {
         if (mBrokenLibraries) {
             return; // SDL shows its own error dialog
         }
+        disableFocusHighlight();
         if (dualScreen) {
             screens = new ThorScreens(this, clientLibPath(), game.dir,
                     orDefault(intent.getStringExtra(EXTRA_RODIR), GameData.DEFAULT_RODIR));
             screens.start();
         }
         Log.i(TAG, "engine starting, game=" + game.dir + " libs=" + gameLibDir + " dual=" + dualScreen);
+    }
+
+    /**
+     * Android draws a translucent "default focus highlight" over a focused view that got focus
+     * while not in touch mode. After the engine starts/stops text input (console, text fields),
+     * focus moves DummyEdit -> SDLSurface and that grey layer stayed over the whole game: black
+     * turned into ~30 % grey (min. pixel 77/255). The game surface never needs a focus indicator.
+     */
+    private void disableFocusHighlight() {
+        android.view.View decor = getWindow().getDecorView();
+        if (mSurface != null) {
+            mSurface.setDefaultFocusHighlightEnabled(false);
+        }
+        decor.getViewTreeObserver().addOnGlobalFocusChangeListener((oldFocus, newFocus) -> {
+            if (newFocus != null) {
+                newFocus.setDefaultFocusHighlightEnabled(false);
+            }
+        });
     }
 
     /** Same path the engine loads the client from (XASH3D_GAMELIBDIR), so the bridge finds it. */
