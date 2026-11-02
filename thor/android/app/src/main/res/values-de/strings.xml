@@ -23,7 +23,7 @@
     <string name="ready_hint">Bereit. Das HEV-Deck startet auf dem unteren Bildschirm.</string>
     <string name="not_ready_hint">Spieldaten fehlen oder kein Dateizugriff.</string>
     <string name="check_access">Zugriff auf alle Dateien</string>
-    <string name="check_hd">HD-Paket (valve_hd)</string>
+    <string name="check_hd">HD-Paket (%1$s)</string>
     <string name="deck_health">Gesundheit</string>
     <string name="deck_armor">HEV-Panzerung</string>
     <string name="deck_armor_none">Keine Panzerung</string>

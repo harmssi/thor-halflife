@@ -84,7 +84,7 @@ final class GameData {
             list.add(new Check("valve/halflife.wad", new File(valve, "halflife.wad").isFile(), true));
             list.add(new Check("valve/maps/c1a0.bsp", new File(valve, "maps/c1a0.bsp").isFile() || hasPak(valve), true));
             list.add(new Check("valve/sound, models", new File(valve, "models").isDirectory() || hasPak(valve), true));
-            list.add(new Check(ctx.getString(R.string.check_hd), new File(rodir, "valve_hd").isDirectory(), false));
+            list.add(new Check(ctx.getString(R.string.check_hd, "valve_hd"), new File(rodir, "valve_hd").isDirectory(), false));
             return list;
         }
         // add-ons run on top of the Half-Life base data
@@ -95,7 +95,7 @@ final class GameData {
         list.add(new Check(game.dir + "/maps/" + game.startMap + ".bsp",
                 new File(dir, "maps/" + game.startMap + ".bsp").isFile() || hasPak(dir), true));
         list.add(new Check(game.dir + "/sound, models", new File(dir, "models").isDirectory() || hasPak(dir), true));
-        list.add(new Check("HD pack (" + game.dir + "_hd)", new File(rodir, game.dir + "_hd").isDirectory(), false));
+        list.add(new Check(ctx.getString(R.string.check_hd, game.dir + "_hd"), new File(rodir, game.dir + "_hd").isDirectory(), false));
         return list;
     }
 

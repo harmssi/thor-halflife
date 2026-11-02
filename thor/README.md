@@ -37,7 +37,10 @@ missing (the add-ons also need the Half-Life base data in `valve`). *Play* start
   snapshot, `"slots"`), up to 5 weapons per slot (rows grow), PCV armor and night vision instead
   of the flashlight (the client reads `CHudNightvision`, `THOR_DECK_NIGHTVISION`); Blue Shift
   shows the armor vest. Weapon silhouettes come from `<gamedir>_hd/sprites`, `<gamedir>/sprites`,
-  then `valve_hd/sprites`, `valve/sprites`. Chapter names for all three games.
+  then `valve_hd/sprites`, `valve/sprites` (a sprite rect without bright pixels gives no
+  silhouette: Opposing Force's `weapon_penguin.txt` points at an empty part of `640hudof03`).
+  Chapter names for all three games, taken from the maps that show the chapter title; Blue Shift
+  visits `ba_teleport2` twice (from Xen: *Focal Point*, back from the power plant: *A Leap of Faith*).
 
 ### How the data flows
 

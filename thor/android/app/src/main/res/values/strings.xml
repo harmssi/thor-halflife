@@ -24,7 +24,7 @@
     <string name="ready_hint">Ready. The HEV deck starts on the bottom screen.</string>
     <string name="not_ready_hint">Game data missing or no file access.</string>
     <string name="check_access">All-files access</string>
-    <string name="check_hd">HD pack (valve_hd)</string>
+    <string name="check_hd">HD pack (%1$s)</string>
     <string name="deck_health">Health</string>
     <string name="deck_armor">HEV armor</string>
     <string name="deck_armor_none">No armor</string>

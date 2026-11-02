@@ -23,7 +23,7 @@
     <string name="ready_hint">Prêt. La console HEV démarre sur l\'écran du bas.</string>
     <string name="not_ready_hint">Données manquantes ou pas d\'accès aux fichiers.</string>
     <string name="check_access">Accès à tous les fichiers</string>
-    <string name="check_hd">Pack HD (valve_hd)</string>
+    <string name="check_hd">Pack HD (%1$s)</string>
     <string name="deck_health">Santé</string>
     <string name="deck_armor">Armure HEV</string>
     <string name="deck_armor_none">Pas d\'armure</string>

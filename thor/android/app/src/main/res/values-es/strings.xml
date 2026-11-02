@@ -23,7 +23,7 @@
     <string name="ready_hint">Listo. El panel HEV se abre en la pantalla inferior.</string>
     <string name="not_ready_hint">Faltan datos o no hay acceso a archivos.</string>
     <string name="check_access">Acceso a todos los archivos</string>
-    <string name="check_hd">Paquete HD (valve_hd)</string>
+    <string name="check_hd">Paquete HD (%1$s)</string>
     <string name="deck_health">Salud</string>
     <string name="deck_armor">Blindaje HEV</string>
     <string name="deck_armor_none">Sin blindaje</string>

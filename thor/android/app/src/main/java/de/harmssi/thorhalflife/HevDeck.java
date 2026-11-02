@@ -82,6 +82,7 @@ public class HevDeck extends View {
     private final float[] trail = new float[2 * 1200];
     private int trailN;
     private String trailMap = "";
+    private String previousMap = ""; // last real map before this one (Blue Shift chapter names)
     private long trailWaitUntil;
 
     // animation
@@ -204,6 +205,12 @@ public class HevDeck extends View {
             for (int i = 0; i < 3; i++) {
                 pos[i] = po != null ? (float) po.optDouble(i, 0) : 0;
             }
+            // keep the last drawn tile bounds per weapon: the list is rebuilt on every poll and a tap
+            // between a poll and the next draw must still hit its tile
+            java.util.Map<Integer, RectF> oldBounds = new java.util.HashMap<>();
+            for (Weapon ow : weapons) {
+                oldBounds.put(ow.id, ow.bounds);
+            }
             weapons.clear();
             JSONArray w = o.optJSONArray("w");
             if (w != null) {
@@ -220,6 +227,10 @@ public class HevDeck extends View {
                     x.ammo2 = a.getInt(7);
                     x.max2 = a.getInt(8);
                     x.selectable = a.getInt(9) != 0;
+                    RectF ob = oldBounds.get(x.id);
+                    if (ob != null) {
+                        x.bounds.set(ob);
+                    }
                     weapons.add(x);
                 }
                 int[] perSlot = new int[16];
@@ -272,6 +283,9 @@ public class HevDeck extends View {
 
         // breadcrumb trail
         if (!map.equals(trailMap)) {
+            if (!trailMap.isEmpty()) {
+                previousMap = trailMap;
+            }
             trailMap = map;
             trailN = 0;
             trailWaitUntil = now + 1500;
@@ -842,7 +856,7 @@ public class HevDeck extends View {
             String m = map.toUpperCase();
             c.drawText(m, r.right - 24 * s - monoSmall.measureText(m), r.top + 36 * s, monoSmall);
         }
-        String ch = inGame ? Names.chapter(map) : null;
+        String ch = inGame ? Names.chapter(map, previousMap) : null;
         bodySemi.setTextSize(20 * s);
         bodySemi.setColor(ch != null ? Ui.AMBER_2 : Ui.TEXT_2);
         String title = !inGame ? "--" : ch != null ? ch : map;

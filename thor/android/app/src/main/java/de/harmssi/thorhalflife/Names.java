@@ -147,18 +147,31 @@ final class Names {
             {"ba_tram", "Living Quarters Outbound"},
             {"ba_security ba_maint ba_elevator", "Insecurity"},
             {"ba_canal", "Duty Calls"},
-            {"ba_yard", "Captive Freight"},
+            // order: yard -> teleport1 -> xen1..6 -> teleport2 -> power1/2 -> teleport2 -> outro
+            {"ba_yard ba_teleport1", "Captive Freight"},
             {"ba_xen", "Focal Point"},
-            {"ba_power ba_teleport1", "Power Struggle"},
-            {"ba_teleport2 ba_outro", "A Leap of Faith"},
+            {"ba_power", "Power Struggle"},
+            {"ba_outro", "A Leap of Faith"},
     };
 
     /** Chapter title for a map name (e.g. "c1a0d" -> "Anomalous Materials"), or null. */
     static String chapter(String map) {
+        return chapter(map, null);
+    }
+
+    /**
+     * Same, with the previous map: Blue Shift visits ba_teleport2 twice (from Xen = "Focal Point",
+     * back from the power plant = "A Leap of Faith").
+     */
+    static String chapter(String map, String previousMap) {
         if (map == null || map.isEmpty()) {
             return null;
         }
         String m = map.toLowerCase(Locale.ROOT);
+        if (m.equals("ba_teleport2")) {
+            boolean back = previousMap != null && previousMap.toLowerCase(Locale.ROOT).startsWith("ba_power");
+            return back ? "A Leap of Faith" : "Focal Point";
+        }
         for (String[] c : CHAPTERS) {
             for (String prefix : c[0].split(" ")) {
                 // Half-Life: 5-letter entries are exact map names (c2a4 vs c2a4d); other games: prefixes

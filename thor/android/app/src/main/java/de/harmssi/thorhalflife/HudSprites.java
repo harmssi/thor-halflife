@@ -152,6 +152,20 @@ final class HudSprites {
         if (rw <= 0 || rh <= 0) {
             return null;
         }
+        // a rect without any bright pixel is not an icon (Opposing Force's weapon_penguin.txt points
+        // at the empty, striped part of 640hudof03): no silhouette instead of a grey block
+        int peak = 0;
+        for (int yy = 0; yy < rh; yy++) {
+            for (int xx = 0; xx < rw; xx++) {
+                int idx = px[(ry + yy) * fw + rx + xx] & 0xFF;
+                if (!(texFormat == 3 && idx == 255)) {
+                    peak = Math.max(peak, texFormat == 2 ? idx : lum(pal, idx));
+                }
+            }
+        }
+        if (peak < 120) {
+            return null;
+        }
         int[] argb = new int[rw * rh];
         for (int yy = 0; yy < rh; yy++) {
             for (int xx = 0; xx < rw; xx++) {
