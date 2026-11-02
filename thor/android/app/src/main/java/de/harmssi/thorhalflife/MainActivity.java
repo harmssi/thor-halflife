@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Launcher: title, data check, PLAY, settings (screens, language EN/DE/ES/FR, controller layout),
+ * Launcher: title, game choice (Half-Life / Opposing Force / Blue Shift), data check, PLAY, settings (screens, language EN/DE/ES/FR, controller layout),
  * licenses and the trademark notice. Fully controller-navigable (D-pad / stick + A).
  */
 public class MainActivity extends Activity {
@@ -43,12 +43,14 @@ public class MainActivity extends Activity {
     static final String P_BINDS_DONE = "binds_done";
     static final String P_RODIR = "rodir";
     static final String P_REF = "renderer";
+    static final String P_GAME = "game";
     static final String[] RENDERERS = {"gles3compat", "gl4es", "gles1"};
 
     private float f = 1f; // scale: design grid is 1920x1080
     private SharedPreferences prefs;
     private LinearLayout checkList;
-    private TextView playButton, accessButton, statusLine;
+    private TextView playButton, accessButton, statusLine, dataPath, savesText;
+    private final TextView[] gameChips = new TextView[GameData.GAMES.length];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,6 +83,10 @@ public class MainActivity extends Activity {
 
     private String rodir() {
         return prefs.getString(P_RODIR, GameData.DEFAULT_RODIR);
+    }
+
+    private GameData.Game game() {
+        return GameData.game(prefs.getString(P_GAME, "valve"));
     }
 
     // ------------------------------------------------------------------ UI
@@ -124,19 +130,43 @@ public class MainActivity extends Activity {
         titles.addView(tag, tlp);
         head.addView(titles, new LinearLayout.LayoutParams(0, -2, 1f));
 
+        // game choice: every game is listed; one without data is dimmed (its check list says why)
+        LinearLayout gameRow = new LinearLayout(this);
+        gameRow.setOrientation(LinearLayout.HORIZONTAL);
+        LinearLayout.LayoutParams grl = new LinearLayout.LayoutParams(-1, (int) px(72));
+        grl.topMargin = (int) px(36);
+        left.addView(gameRow, grl);
+        for (int i = 0; i < GameData.GAMES.length; i++) {
+            final GameData.Game g = GameData.GAMES[i];
+            TextView chip = text(getString(g.titleRes), Ui.interSemi(), 21, Ui.TEXT_2);
+            chip.setGravity(Gravity.CENTER);
+            chip.setFocusable(true);
+            chip.setClickable(true);
+            gameChips[i] = chip;
+            LinearLayout.LayoutParams gcl = new LinearLayout.LayoutParams(0, -1, 1f);
+            if (i > 0) {
+                gcl.leftMargin = (int) px(8);
+            }
+            gameRow.addView(chip, gcl);
+            chip.setOnClickListener(v -> {
+                prefs.edit().putString(P_GAME, g.dir).apply();
+                refreshChecks();
+            });
+        }
+
         // data check card
         LinearLayout card = new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
         card.setPadding((int) px(32), (int) px(28), (int) px(32), (int) px(28));
         card.setBackground(panelBg(Ui.PANEL, Ui.LINE, Ui.RADIUS));
         LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(-1, 0, 1f);
-        clp.topMargin = (int) px(44);
+        clp.topMargin = (int) px(20);
         left.addView(card, clp);
         card.addView(label(getString(R.string.data_check), 15, Ui.TEXT_3));
-        TextView path = text(rodir() + "/valve", Ui.mono(), 18, Ui.TEXT_2);
+        dataPath = text(rodir() + "/" + game().dir, Ui.mono(), 18, Ui.TEXT_2);
         LinearLayout.LayoutParams plp = new LinearLayout.LayoutParams(-2, -2);
         plp.topMargin = (int) px(12);
-        card.addView(path, plp);
+        card.addView(dataPath, plp);
         checkList = new LinearLayout(this);
         checkList.setOrientation(LinearLayout.VERTICAL);
         LinearLayout.LayoutParams cl = new LinearLayout.LayoutParams(-1, -2);
@@ -144,8 +174,8 @@ public class MainActivity extends Activity {
         card.addView(checkList, cl);
         View spacer = new View(this);
         card.addView(spacer, new LinearLayout.LayoutParams(-1, 0, 1f));
-        TextView saves = para(getString(R.string.save_dir, GameData.DEFAULT_BASEDIR + "/valve"));
-        card.addView(saves);
+        savesText = para(getString(R.string.save_dir, GameData.DEFAULT_BASEDIR + "/" + game().dir));
+        card.addView(savesText);
 
         // play row
         LinearLayout playRow = new LinearLayout(this);
@@ -325,7 +355,18 @@ public class MainActivity extends Activity {
             return;
         }
         checkList.removeAllViews();
-        List<GameData.Check> checks = GameData.check(this, rodir());
+        GameData.Game game = game();
+        for (int i = 0; i < gameChips.length; i++) {
+            GameData.Game g = GameData.GAMES[i];
+            boolean present = GameData.present(rodir(), g);
+            gameChips[i].setText(present ? getString(g.titleRes)
+                    : getString(g.titleRes) + "  ·  " + getString(R.string.game_missing));
+            styleChip(gameChips[i], g == game);
+            gameChips[i].setAlpha(present ? 1f : 0.5f);
+        }
+        dataPath.setText(rodir() + "/" + game.dir);
+        savesText.setText(getString(R.string.save_dir, GameData.DEFAULT_BASEDIR + "/" + game.dir));
+        List<GameData.Check> checks = GameData.check(this, rodir(), game);
         boolean ready = true;
         for (GameData.Check c : checks) {
             if (c.required && !c.ok) {
@@ -370,11 +411,13 @@ public class MainActivity extends Activity {
     }
 
     private void launch() {
-        if (!GameData.ready(this, rodir())) {
+        GameData.Game game = game();
+        if (!GameData.ready(this, rodir(), game)) {
             refreshChecks();
             return;
         }
         Intent i = new Intent(this, GameActivity.class);
+        i.putExtra(GameActivity.EXTRA_GAME, game.dir);
         i.putExtra(GameActivity.EXTRA_RODIR, rodir());
         i.putExtra(GameActivity.EXTRA_BASEDIR, GameData.DEFAULT_BASEDIR);
         i.putExtra(GameActivity.EXTRA_LANG, engineLanguage());

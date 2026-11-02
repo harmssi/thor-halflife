@@ -22,7 +22,8 @@ import java.io.File;
  * getAssetsList, getCallingPackage. These are adapted from FWGS XashActivity (GPL-3.0).
  *
  * Intent extras (all optional; the launcher fills them from the settings):
- *   rodir  = read-only data root with valve/ (default /sdcard/xash)
+ *   game   = game folder: valve (default), gearbox (Opposing Force), bshift (Blue Shift)
+ *   rodir  = read-only data root with valve/ (+ gearbox/, bshift/) (default /sdcard/xash)
  *   basedir= writable root for config + saves (default /sdcard/ThorHalfLife)
  *   lang   = engine/game language for +ui_language (e.g. "german")
  *   single = true forces the single-screen mode (classic HUD on top)
@@ -31,6 +32,7 @@ import java.io.File;
  */
 public class GameActivity extends SDLActivity {
     static final String TAG = "ThorHalfLife";
+    static final String EXTRA_GAME = "game";
     static final String EXTRA_RODIR = "rodir";
     static final String EXTRA_BASEDIR = "basedir";
     static final String EXTRA_LANG = "lang";
@@ -39,8 +41,11 @@ public class GameActivity extends SDLActivity {
     static final String EXTRA_REF = "ref";
     static final String EXTRA_APPLY_BINDS = "apply_binds";
 
+    /** The name the engine asks for (lib + "client" + Android/arm64 suffix), for every game. */
     static final String CLIENT_LIB = "libclient_android_arm64.so";
 
+    private GameData.Game game;
+    private String gameLibDir;
     private ThorScreens screens;
     private boolean dualScreen;
     private volatile float[] windowInsets = new float[4];
@@ -48,6 +53,8 @@ public class GameActivity extends SDLActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Intent intent = getIntent();
+        game = GameData.game(intent.getStringExtra(EXTRA_GAME));
+        gameLibDir = prepareGameLibs(game);
         dualScreen = !intent.getBooleanExtra(EXTRA_SINGLE, false) && ThorScreens.hasSecondScreen(this);
         super.onCreate(savedInstanceState);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
@@ -58,15 +65,52 @@ public class GameActivity extends SDLActivity {
             return; // SDL shows its own error dialog
         }
         if (dualScreen) {
-            screens = new ThorScreens(this, clientLibPath(),
+            screens = new ThorScreens(this, clientLibPath(), game.dir,
                     orDefault(intent.getStringExtra(EXTRA_RODIR), GameData.DEFAULT_RODIR));
             screens.start();
         }
-        Log.i(TAG, "engine starting, dual=" + dualScreen);
+        Log.i(TAG, "engine starting, game=" + game.dir + " libs=" + gameLibDir + " dual=" + dualScreen);
     }
 
+    /** Same path the engine loads the client from (XASH3D_GAMELIBDIR), so the bridge finds it. */
     String clientLibPath() {
-        return getApplicationInfo().nativeLibraryDir + "/" + CLIENT_LIB;
+        return gameLibDir + "/" + CLIENT_LIB;
+    }
+
+    /**
+     * The engine loads every game library by its plain name from XASH3D_GAMELIBDIR, and the client
+     * is always "libclient_android_arm64.so". Half-Life uses the APK library folder directly; for
+     * Opposing Force / Blue Shift a small folder of symlinks maps that name to the game's own
+     * client (libclient_gearbox.so / libclient_bshift.so) and links all other libraries as they are.
+     */
+    private String prepareGameLibs(GameData.Game g) {
+        String nativeDir = getApplicationInfo().nativeLibraryDir;
+        if (g.isValve()) {
+            return nativeDir;
+        }
+        File dir = new File(getFilesDir(), "gamelibs/" + g.dir);
+        try {
+            dir.mkdirs();
+            File[] old = dir.listFiles();
+            if (old != null) {
+                for (File f : old) {
+                    f.delete();
+                }
+            }
+            String[] libs = new File(nativeDir).list();
+            if (libs != null) {
+                for (String name : libs) {
+                    if (name.endsWith(".so") && !name.equals(CLIENT_LIB) && !name.startsWith("libclient_")) {
+                        android.system.Os.symlink(nativeDir + "/" + name, new File(dir, name).getPath());
+                    }
+                }
+            }
+            android.system.Os.symlink(nativeDir + "/" + g.clientLib, new File(dir, CLIENT_LIB).getPath());
+            return dir.getPath();
+        } catch (Exception e) {
+            Log.e(TAG, "game libs for " + g.dir + " failed", e);
+            return nativeDir;
+        }
     }
 
     // ------------------------------------------------------------------ SDL / engine setup
@@ -83,11 +127,11 @@ public class GameActivity extends SDLActivity {
         String basedir = orDefault(intent.getStringExtra(EXTRA_BASEDIR), GameData.DEFAULT_BASEDIR);
         File crashDir = new File(getFilesDir(), "crashes");
         crashDir.mkdirs();
-        GameData.prepareBaseDir(this, new File(basedir), intent.getBooleanExtra(EXTRA_APPLY_BINDS, false), dualScreen);
+        GameData.prepareBaseDir(this, new File(basedir), game, intent.getBooleanExtra(EXTRA_APPLY_BINDS, false), dualScreen);
 
         nativeSetenv("XASH3D_CRASH_DIR", crashDir.getAbsolutePath());
-        nativeSetenv("XASH3D_GAME", "valve");
-        nativeSetenv("XASH3D_GAMELIBDIR", getApplicationInfo().nativeLibraryDir);
+        nativeSetenv("XASH3D_GAME", game.dir);
+        nativeSetenv("XASH3D_GAMELIBDIR", gameLibDir);
         nativeSetenv("XASH3D_RODIR", rodir);
         nativeSetenv("XASH3D_BASEDIR", basedir);
         nativeSetenv("THOR_DECK", dualScreen ? "1" : "0");

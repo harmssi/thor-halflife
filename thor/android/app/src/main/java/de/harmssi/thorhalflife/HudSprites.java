@@ -16,7 +16,8 @@ import java.util.concurrent.Executors;
 
 /**
  * Weapon silhouettes for the deck, decoded at runtime from the user's own game files
- * (valve/sprites/weapon_*.txt + the HUD sprite sheets). Nothing from the game ships with the app.
+ * (<game>/sprites/weapon_*.txt + the HUD sprite sheets, falling back to valve for the weapons an
+ * add-on shares with Half-Life). Nothing from the game ships with the app.
  *
  * Output bitmaps are white with alpha = sprite brightness; the deck tints them when drawing.
  */
@@ -28,9 +29,16 @@ final class HudSprites {
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private final Runnable onLoaded;
 
-    HudSprites(String rodir, Runnable onLoaded) {
-        // valve_hd first (HD packs), then valve
-        this.roots = new File[]{new File(rodir, "valve_hd/sprites"), new File(rodir, "valve/sprites")};
+    HudSprites(String rodir, String game, Runnable onLoaded) {
+        // the game's own folders first (HD pack, then base), then Half-Life (valve_hd, valve)
+        java.util.List<File> r = new java.util.ArrayList<>();
+        if (game != null && !game.equals("valve")) {
+            r.add(new File(rodir, game + "_hd/sprites"));
+            r.add(new File(rodir, game + "/sprites"));
+        }
+        r.add(new File(rodir, "valve_hd/sprites"));
+        r.add(new File(rodir, "valve/sprites"));
+        this.roots = r.toArray(new File[0]);
         this.onLoaded = onLoaded;
     }
 

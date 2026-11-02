@@ -77,4 +77,16 @@
     <string name="ref_gles3">GLES3 (best)</string>
     <string name="ref_gl4es">GL4ES</string>
     <string name="ref_gles1">GLES1 (fast)</string>
+    <string name="set_game">Game</string>
+    <string name="game_valve" translatable="false">Half-Life</string>
+    <string name="game_gearbox" translatable="false">Opposing Force</string>
+    <string name="game_bshift" translatable="false">Blue Shift</string>
+    <string name="game_missing">not found</string>
+    <string name="check_base">Half-Life base data (valve)</string>
+    <string name="deck_armor_pcv">PCV armor</string>
+    <string name="deck_armor_vest">Armor</string>
+    <string name="deck_no_suit_hint_pcv">PCV not equipped yet</string>
+    <string name="deck_no_suit_hint_vest">Armor vest not equipped yet</string>
+    <string name="deck_nightvision">Night vision</string>
+    <string name="btn_nightvision">Night vision</string>
 </resources>

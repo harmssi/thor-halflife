@@ -34,6 +34,17 @@ final class Names {
         w("weapon_satchel", "Satchel", "Rucksackladung", "Carga de mochila", "Charge a distance");
         w("weapon_tripmine", "Tripmine", "Laserfalle", "Mina laser", "Mine laser");
         w("weapon_snark", "Snarks", "Snarks", "Snarks", "Snarks");
+        // Opposing Force
+        w("weapon_pipewrench", "Pipe Wrench", "Rohrzange", "Llave inglesa", "Cle a molette");
+        w("weapon_knife", "Combat Knife", "Kampfmesser", "Cuchillo", "Couteau");
+        w("weapon_grapple", "Barnacle", "Barnacle", "Barnacle", "Barnacle");
+        w("weapon_eagle", "Desert Eagle", "Desert Eagle", "Desert Eagle", "Desert Eagle");
+        w("weapon_m249", "M249 SAW", "M249 SAW", "M249 SAW", "M249 SAW");
+        w("weapon_sniperrifle", "Sniper Rifle", "Scharfschuetzengewehr", "Rifle de francotirador", "Fusil de precision");
+        w("weapon_displacer", "Displacer", "Displacer", "Desplazador", "Displaceur");
+        w("weapon_shockrifle", "Shock Roach", "Shock Roach", "Shock Roach", "Shock Roach");
+        w("weapon_sporelauncher", "Spore Launcher", "Sporenwerfer", "Lanzaesporas", "Lance-spores");
+        w("weapon_penguin", "Penguins", "Pinguine", "Pinguinos", "Pingouins");
         SECONDARY.put("weapon_9mmAR", new String[]{"AR grenades", "Granaten", "Granadas", "Grenades"});
         SECONDARY.put("weapon_mp5", new String[]{"AR grenades", "Granaten", "Granadas", "Grenades"});
         ITEMS.put("item_healthkit", new String[]{"Medkit", "Medikit", "Botiquin", "Trousse de soins"});
@@ -42,6 +53,7 @@ final class Names {
         ITEMS.put("item_suit", new String[]{"HEV suit", "HEV-Anzug", "Traje HEV", "Combinaison HEV"});
         ITEMS.put("item_antidote", new String[]{"Antidote", "Gegengift", "Antidoto", "Antidote"});
         ITEMS.put("item_security", new String[]{"Security card", "Sicherheitskarte", "Tarjeta", "Carte d'acces"});
+        ITEMS.put("item_nightvision", new String[]{"Night vision", "Nachtsicht", "Vision nocturna", "Vision nocturne"});
         ITEMS.put("dmg_rad", new String[]{"Radiation", "Strahlung", "Radiacion", "Radiation"});
     }
 
@@ -115,6 +127,30 @@ final class Names {
             {"c4a2", "Gonarch's Lair"},
             {"c4a3", "Nihilanth"},
             {"c5a1", "Endgame"},
+            // Opposing Force (chapter title shown in the first map of each chapter)
+            {"ofboot", "Boot Camp"},
+            {"of0a", "Incoming"},
+            {"of1a1 of1a2 of1a3 of1a4", "Welcome to Black Mesa"},
+            {"of1a5 of1a6", "\"We Are Pulling Out\""},
+            {"of2a1 of2a2 of2a3", "Missing in Action"},
+            {"of2a4 of2a5 of2a6", "Friendly Fire"},
+            {"of3a1 of3a2 of3a3", "We Are Not Alone"},
+            {"of3a4 of3a5 of3a6", "Crush Depth"},
+            {"of4a1 of4a2 of4a3", "Vicarious Reality"},
+            {"of4a4 of4a5", "Pit Worm's Nest"},
+            {"of5a", "Foxtrot Uniform"},
+            {"of6a4b of6a5", "Worlds Collide"},
+            {"of6a", "\"The Package\""},
+            {"of7a", "Conclusion"},
+            // Blue Shift
+            {"ba_hazard", "Hazard Course"},
+            {"ba_tram", "Living Quarters Outbound"},
+            {"ba_security ba_maint ba_elevator", "Insecurity"},
+            {"ba_canal", "Duty Calls"},
+            {"ba_yard", "Captive Freight"},
+            {"ba_xen", "Focal Point"},
+            {"ba_power ba_teleport1", "Power Struggle"},
+            {"ba_teleport2 ba_outro", "A Leap of Faith"},
     };
 
     /** Chapter title for a map name (e.g. "c1a0d" -> "Anomalous Materials"), or null. */
@@ -125,7 +161,9 @@ final class Names {
         String m = map.toLowerCase(Locale.ROOT);
         for (String[] c : CHAPTERS) {
             for (String prefix : c[0].split(" ")) {
-                if (prefix.length() == 5 ? m.equals(prefix) : m.startsWith(prefix)) {
+                // Half-Life: 5-letter entries are exact map names (c2a4 vs c2a4d); other games: prefixes
+                boolean exact = prefix.length() == 5 && prefix.charAt(0) == 'c';
+                if (exact ? m.equals(prefix) : m.startsWith(prefix)) {
                     return c[1];
                 }
             }

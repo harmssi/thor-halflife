@@ -76,4 +76,13 @@
     <string name="ref_gles3">GLES3 (meilleur)</string>
     <string name="ref_gl4es">GL4ES</string>
     <string name="ref_gles1">GLES1 (rapide)</string>
+    <string name="set_game">Jeu</string>
+    <string name="game_missing">introuvable</string>
+    <string name="check_base">Données de base Half-Life (valve)</string>
+    <string name="deck_armor_pcv">Armure PCV</string>
+    <string name="deck_armor_vest">Armure</string>
+    <string name="deck_no_suit_hint_pcv">PCV pas encore équipée</string>
+    <string name="deck_no_suit_hint_vest">Gilet pas encore équipé</string>
+    <string name="deck_nightvision">Vision nocturne</string>
+    <string name="btn_nightvision">Vision noct.</string>
 </resources>

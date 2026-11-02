@@ -76,4 +76,13 @@
     <string name="ref_gles3">GLES3 (beste)</string>
     <string name="ref_gl4es">GL4ES</string>
     <string name="ref_gles1">GLES1 (schnell)</string>
+    <string name="set_game">Spiel</string>
+    <string name="game_missing">nicht gefunden</string>
+    <string name="check_base">Half-Life-Basisdaten (valve)</string>
+    <string name="deck_armor_pcv">PCV-Panzerung</string>
+    <string name="deck_armor_vest">Panzerung</string>
+    <string name="deck_no_suit_hint_pcv">PCV noch nicht angelegt</string>
+    <string name="deck_no_suit_hint_vest">Schutzweste noch nicht angelegt</string>
+    <string name="deck_nightvision">Nachtsicht</string>
+    <string name="btn_nightvision">Nachtsicht</string>
 </resources>

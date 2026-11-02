@@ -22,7 +22,8 @@ import java.util.List;
 /**
  * HEV companion deck for the Thor's bottom screen (display 4, 1240x1080).
  *
- * Header (health, armor, suit status + flashlight) · arsenal (slot columns 1-5, tap = select) ·
+ * Header (health, armor, suit status + flashlight) · arsenal (slot columns 1-5, Opposing Force 1-7;
+ * tap = select) ·
  * pickups · hazards + compass · location (chapter, breadcrumb map) · quick buttons.
  *
  * All data is a snapshot from the client library (cl_dll/thor_deck.cpp). Every action goes back as
@@ -36,7 +37,7 @@ public class HevDeck extends View {
     static final int DMG_BURN = 1 << 3, DMG_FREEZE = 1 << 4, DMG_SHOCK = 1 << 8, DMG_DROWN = 1 << 14,
             DMG_NERVEGAS = 1 << 16, DMG_POISON = 1 << 17, DMG_RADIATION = 1 << 18, DMG_ACID = 1 << 20,
             DMG_SLOWBURN = 1 << 21, DMG_SLOWFREEZE = 1 << 22;
-    static final int SLOTS = 5;
+    static final int MIN_SLOTS = 5, MIN_ROWS = 4;
 
     static final class Weapon {
         int id, slot, pos, clip, ammo1, max1, ammo2, max2;
@@ -54,7 +55,11 @@ public class HevDeck extends View {
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final String clientLib;
+    private final String game;
     private final HudSprites sprites;
+    // arsenal grid: columns = weapon slots of the game (snapshot "slots"), rows grow with the
+    // fullest slot (Opposing Force: 5 throwables) and never shrink during a session
+    private int slots = MIN_SLOTS, rows = MIN_ROWS;
     private final Paint iconPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
     private final RectF iconDst = new RectF();
 
@@ -113,10 +118,11 @@ public class HevDeck extends View {
         }
     };
 
-    public HevDeck(Context context, String clientLib, String rodir) {
+    public HevDeck(Context context, String clientLib, String game, String rodir) {
         super(context);
         this.clientLib = clientLib;
-        this.sprites = new HudSprites(rodir, this::postInvalidate);
+        this.game = game == null ? "valve" : game;
+        this.sprites = new HudSprites(rodir, this.game, this::postInvalidate);
         Ui.init(context);
         setBackgroundColor(Ui.BG);
         setHapticFeedbackEnabled(true);
@@ -134,6 +140,19 @@ public class HevDeck extends View {
     public void release() {
         stop();
         sprites.shutdown();
+    }
+
+    // Opposing Force: PCV + night vision; Blue Shift: security guard armor vest
+    private int armorLabel() {
+        return game.equals("gearbox") ? R.string.deck_armor_pcv : game.equals("bshift") ? R.string.deck_armor_vest : R.string.deck_armor;
+    }
+
+    private int lightLabel() {
+        return game.equals("gearbox") ? R.string.deck_nightvision : R.string.deck_flashlight;
+    }
+
+    private int noSuitLabel() {
+        return game.equals("gearbox") ? R.string.deck_no_suit_hint_pcv : game.equals("bshift") ? R.string.deck_no_suit_hint_vest : R.string.deck_no_suit_hint;
     }
 
     private String str(int id) {
@@ -174,6 +193,7 @@ public class HevDeck extends View {
             fallV = (float) o.optDouble("fallv", 0);
             speed = (float) o.optDouble("speed", 0);
             yaw = (float) o.optDouble("yaw", 0);
+            slots = Math.max(MIN_SLOTS, Math.min(10, o.optInt("slots", MIN_SLOTS)));
             cur = o.optInt("cur");
             sel = o.optInt("sel");
             JSONArray pa = o.optJSONArray("pain");
@@ -201,6 +221,12 @@ public class HevDeck extends View {
                     x.max2 = a.getInt(8);
                     x.selectable = a.getInt(9) != 0;
                     weapons.add(x);
+                }
+                int[] perSlot = new int[16];
+                for (Weapon x : weapons) {
+                    if (x.slot >= 0 && x.slot < perSlot.length) {
+                        rows = Math.max(rows, Math.min(6, ++perSlot[x.slot]));
+                    }
                 }
             }
             feed.clear();
@@ -329,7 +355,7 @@ public class HevDeck extends View {
 
         boolean live = inGame && suit != 0;
         drawVital(c, pHealth, str(R.string.deck_health), live ? hp : -1, shownHp, 25, hpHitAt, now, true);
-        drawVital(c, pArmor, str(R.string.deck_armor), live ? ap : -1, shownAp, 0, apHitAt, now, false);
+        drawVital(c, pArmor, str(armorLabel()), live ? ap : -1, shownAp, 0, apHitAt, now, false);
         drawStatus(c, now);
         drawArsenal(c, now);
         drawFeed(c, now);
@@ -465,7 +491,7 @@ public class HevDeck extends View {
 
         // flashlight
         float fy = r.top + 134 * s;
-        label(c, str(R.string.deck_flashlight), x, fy);
+        label(c, str(lightLabel()), x, fy);
         String st = flOn != 0 ? str(R.string.deck_on) : str(R.string.deck_off);
         chipText.setColor(flOn != 0 ? Ui.AMBER_2 : Ui.TEXT_3);
         c.drawText(st.toUpperCase(), r.right - 24 * s - chipText.measureText(st.toUpperCase()), fy, chipText);
@@ -479,7 +505,7 @@ public class HevDeck extends View {
             // beam glyph
             paint.setColor(Ui.alpha(Ui.AMBER, 0.25f));
             Path p = new Path();
-            float bx = x + micro.measureText(str(R.string.deck_flashlight).toUpperCase()) + 18 * s;
+            float bx = x + micro.measureText(str(lightLabel()).toUpperCase()) + 18 * s;
             p.moveTo(bx, fy - 6 * s);
             p.lineTo(bx + 28 * s, fy - 16 * s);
             p.lineTo(bx + 28 * s, fy + 4 * s);
@@ -507,14 +533,13 @@ public class HevDeck extends View {
 
         float colGap = 12 * s;
         float left = r.left + 16 * s, right = r.right - 16 * s;
-        float cw = (right - left - colGap * (SLOTS - 1)) / SLOTS;
+        float cw = (right - left - colGap * (slots - 1)) / slots;
         float top = r.top + 56 * s;
         float bottom = r.bottom - 16 * s;
-        int rows = 4;
         float rowGap = 8 * s;
         float th = (bottom - top - 26 * s - rowGap * (rows - 1)) / rows;
 
-        for (int col = 0; col < SLOTS; col++) {
+        for (int col = 0; col < slots; col++) {
             float cx = left + col * (cw + colGap);
             monoSmall.setColor(Ui.TEXT_3);
             c.drawText(String.valueOf(col + 1), cx + 4 * s, top + 14 * s, monoSmall);
@@ -547,7 +572,7 @@ public class HevDeck extends View {
 
         if (!inGame || weapons.isEmpty()) {
             String msg = !connected || !inGame ? str(R.string.deck_standby_hint)
-                    : suit == 0 ? str(R.string.deck_no_suit_hint) : str(R.string.deck_no_weapons);
+                    : suit == 0 ? str(noSuitLabel()) : str(R.string.deck_no_weapons);
             body.setColor(Ui.TEXT_2);
             float mw = body.measureText(msg);
             RectF box = new RectF(r.centerX() - mw / 2 - 28 * s, r.centerY() - 30 * s, r.centerX() + mw / 2 + 28 * s, r.centerY() + 30 * s);
@@ -877,7 +902,7 @@ public class HevDeck extends View {
     }
 
     private void drawButtons(Canvas c, long now) {
-        String[] names = {str(R.string.btn_flashlight), str(R.string.btn_use), str(R.string.btn_quicksave),
+        String[] names = {str(game.equals("gearbox") ? R.string.btn_nightvision : R.string.btn_flashlight), str(R.string.btn_use), str(R.string.btn_quicksave),
                 str(R.string.btn_quickload), str(R.string.btn_menu)};
         String[] hints = {"F", "E", "F6", "F7", "ESC"};
         boolean armed = now - loadArmedAt < 2500;

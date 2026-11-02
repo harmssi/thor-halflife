@@ -13,8 +13,9 @@ import java.util.List;
 /**
  * Where the game data lives and what the engine needs.
  *
- * rodir  (read-only): the user's own Half-Life files, default /sdcard/xash/valve. Never written.
- * basedir (writable): /sdcard/ThorHalfLife/valve - config.cfg, saves, logs, thor.cfg.
+ * rodir  (read-only): the user's own game files, default /sdcard/xash/{valve,gearbox,bshift}.
+ *         Never written. Opposing Force and Blue Shift also need the Half-Life base data (valve).
+ * basedir (writable): /sdcard/ThorHalfLife/<gamedir> - config.cfg, saves, logs, thor.cfg.
  */
 final class GameData {
     private GameData() {}
@@ -39,25 +40,78 @@ final class GameData {
         return Environment.isExternalStorageManager();
     }
 
-    static List<Check> check(Context ctx, String rodir) {
+    /** A supported game: its game folder (= engine gamedir) and the files that must be there. */
+    static final class Game {
+        final String dir;       // valve, gearbox, bshift
+        final int titleRes;
+        final String startMap;  // checked in <dir>/maps (or a pak0.pak)
+        final String clientLib; // client library in the APK (the engine loads it as libclient_android_arm64.so)
+
+        Game(String dir, int titleRes, String startMap, String clientLib) {
+            this.dir = dir;
+            this.titleRes = titleRes;
+            this.startMap = startMap;
+            this.clientLib = clientLib;
+        }
+
+        boolean isValve() {
+            return dir.equals("valve");
+        }
+    }
+
+    static final Game[] GAMES = {
+            new Game("valve", R.string.game_valve, "c1a0", "libclient_android_arm64.so"),
+            new Game("gearbox", R.string.game_gearbox, "of0a0", "libclient_gearbox.so"),
+            new Game("bshift", R.string.game_bshift, "ba_tram1", "libclient_bshift.so"),
+    };
+
+    static Game game(String dir) {
+        for (Game g : GAMES) {
+            if (g.dir.equals(dir)) {
+                return g;
+            }
+        }
+        return GAMES[0];
+    }
+
+    static List<Check> check(Context ctx, String rodir, Game game) {
         List<Check> list = new ArrayList<>();
         File valve = new File(rodir, "valve");
         boolean access = hasStorageAccess();
         list.add(new Check(ctx.getString(R.string.check_access), access, true));
-        list.add(new Check("valve/liblist.gam", new File(valve, "liblist.gam").isFile(), true));
-        list.add(new Check("valve/halflife.wad", new File(valve, "halflife.wad").isFile(), true));
-        list.add(new Check("valve/maps/c1a0.bsp", new File(valve, "maps/c1a0.bsp").isFile() || hasPak(valve), true));
-        list.add(new Check("valve/sound, models", new File(valve, "models").isDirectory() || hasPak(valve), true));
-        list.add(new Check(ctx.getString(R.string.check_hd), new File(rodir, "valve_hd").isDirectory(), false));
+        if (game.isValve()) {
+            list.add(new Check("valve/liblist.gam", new File(valve, "liblist.gam").isFile(), true));
+            list.add(new Check("valve/halflife.wad", new File(valve, "halflife.wad").isFile(), true));
+            list.add(new Check("valve/maps/c1a0.bsp", new File(valve, "maps/c1a0.bsp").isFile() || hasPak(valve), true));
+            list.add(new Check("valve/sound, models", new File(valve, "models").isDirectory() || hasPak(valve), true));
+            list.add(new Check(ctx.getString(R.string.check_hd), new File(rodir, "valve_hd").isDirectory(), false));
+            return list;
+        }
+        // add-ons run on top of the Half-Life base data
+        File dir = new File(rodir, game.dir);
+        boolean base = new File(valve, "liblist.gam").isFile() && new File(valve, "halflife.wad").isFile();
+        list.add(new Check(ctx.getString(R.string.check_base), base, true));
+        list.add(new Check(game.dir + "/liblist.gam", new File(dir, "liblist.gam").isFile(), true));
+        list.add(new Check(game.dir + "/maps/" + game.startMap + ".bsp",
+                new File(dir, "maps/" + game.startMap + ".bsp").isFile() || hasPak(dir), true));
+        list.add(new Check(game.dir + "/sound, models", new File(dir, "models").isDirectory() || hasPak(dir), true));
+        list.add(new Check("HD pack (" + game.dir + "_hd)", new File(rodir, game.dir + "_hd").isDirectory(), false));
         return list;
     }
 
-    private static boolean hasPak(File valve) {
-        return new File(valve, "pak0.pak").isFile();
+    /** Are the game files there at all (for the game selector; ignores file access)? */
+    static boolean present(String rodir, Game game) {
+        File dir = new File(rodir, game.dir);
+        return new File(dir, "liblist.gam").isFile()
+                && (game.isValve() || new File(rodir, "valve/liblist.gam").isFile());
     }
 
-    static boolean ready(Context ctx, String rodir) {
-        for (Check c : check(ctx, rodir)) {
+    private static boolean hasPak(File dir) {
+        return new File(dir, "pak0.pak").isFile();
+    }
+
+    static boolean ready(Context ctx, String rodir, Game game) {
+        for (Check c : check(ctx, rodir, game)) {
             if (c.required && !c.ok) {
                 return false;
             }
@@ -66,15 +120,16 @@ final class GameData {
     }
 
     /** Create the writable game dir and write thor.cfg (run by the engine via +exec thor.cfg). */
-    static void prepareBaseDir(Context ctx, File basedir, boolean applyBinds, boolean dual) {
-        File valve = new File(basedir, "valve");
-        if (!valve.isDirectory() && !valve.mkdirs()) {
-            Log.w(GameActivity.TAG, "cannot create " + valve);
+    static void prepareBaseDir(Context ctx, File basedir, Game game, boolean applyBinds, boolean dual) {
+        File gdir = new File(basedir, game.dir);
+        if (!gdir.isDirectory() && !gdir.mkdirs()) {
+            Log.w(GameActivity.TAG, "cannot create " + gdir);
             return;
         }
         // Until the engine has saved its own config.cfg here (on a clean quit), the read-only
         // config from the data folder is used: keep applying the Thor layout until then.
-        if (!new File(valve, "config.cfg").isFile()) {
+        boolean firstStart = !new File(gdir, "config.cfg").isFile();
+        if (firstStart) {
             applyBinds = true;
         }
         StringBuilder cfg = new StringBuilder();
@@ -85,9 +140,13 @@ final class GameData {
             cfg.append("// first launch / reset: Thor gamepad layout (assets/gamepad_presets/thor.cfg)\n");
             cfg.append("joy_loadpreset thor\n");
         }
+        if (firstStart) {
+            // uncensored by default (the German Steam data ships a violence.cfg that turns it off)
+            cfg.append("violence_hblood 1\nviolence_hgibs 1\nviolence_ablood 1\nviolence_agibs 1\n");
+        }
         cfg.append("exec thor_user.cfg\n");
-        write(new File(valve, "thor.cfg"), cfg.toString());
-        File user = new File(valve, "thor_user.cfg");
+        write(new File(gdir, "thor.cfg"), cfg.toString());
+        File user = new File(gdir, "thor_user.cfg");
         if (!user.exists()) {
             write(user, "// Thor Half-Life: your own extra commands, executed on every launch\n");
         }

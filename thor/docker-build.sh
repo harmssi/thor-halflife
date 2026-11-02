@@ -2,6 +2,8 @@
 # Laeuft IM Container "thor-build" (siehe build.sh). /work = $THOR_BUILD_DIR auf dem Host.
 #   1) SDL2 2.32.8                         -> /work/build/sdl2
 #   2) hlsdk-portable (client + hl, arm64) -> /work/build/hlsdk
+#      + Opposing Force (opforfixed, gearbox) -> /work/build/hlsdk-opfor
+#      + Blue Shift (bshift)                  -> /work/build/hlsdk-bshift
 #   3) mainui_cpp (libmenu)                -> /work/build/mainui
 #   4) Xash3D FWGS engine (waf)            -> /work/build/engine
 #   5) thorbridge (JNI)                    -> /work/build/bridge
@@ -42,6 +44,11 @@ fi
 echo "=== [2/6] hlsdk-portable (client + server)"
 cmake -S $SRC/3rdparty/hlsdk-portable -B $W/build/hlsdk "${COMMON[@]}" -DANDROID_APK=ON -D64BIT=ON
 cmake --build $W/build/hlsdk -j$JOBS
+for g in opfor bshift; do
+    echo "=== [2/6] hlsdk-$g (client + server)"
+    cmake -S $SRC/3rdparty/hlsdk-$g -B $W/build/hlsdk-$g "${COMMON[@]}" -DANDROID_APK=ON -D64BIT=ON
+    cmake --build $W/build/hlsdk-$g -j$JOBS
+done
 
 echo "=== [3/6] mainui_cpp"
 cmake -S $SRC/3rdparty/mainui -B $W/build/mainui "${COMMON[@]}" -DBUILD_AS_PART_OF_ENGINE=ON
@@ -72,6 +79,12 @@ find $W/build/engine/3rdparty -name 'lib*.so' -exec cp {} $JNI/ \; 2>/dev/null |
 cp $(find $W/build/mainui -name 'libmenu.so' | head -1) $JNI/
 cp $(find $W/build/hlsdk -name 'libclient*.so' | head -1) $JNI/
 cp $(find $W/build/hlsdk -name 'libhl*.so' | head -1) $JNI/
+# Opposing Force / Blue Shift: the engine always asks for libclient_android_arm64.so, so the
+# client libraries get their own names here; the app links them per game (GameLibs.java).
+cp $(find $W/build/hlsdk-opfor -name 'libclient*.so' | head -1) $JNI/libclient_gearbox.so
+cp $(find $W/build/hlsdk-opfor -name 'libopfor*.so' | head -1) $JNI/
+cp $(find $W/build/hlsdk-bshift -name 'libclient*.so' | head -1) $JNI/libclient_bshift.so
+cp $(find $W/build/hlsdk-bshift -name 'libbshift*.so' | head -1) $JNI/
 cp $W/build/bridge/libthorbridge.so $JNI/
 ls -la $JNI
 cp -r $SDL/android-project/app/src/main/java/org $APP/app/src/main/java-sdl/
