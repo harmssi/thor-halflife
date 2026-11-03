@@ -2,6 +2,17 @@
 >
 > **Licenses:** engine GPL-3.0 ([LICENSE](LICENSE)); game libraries from the Half-Life 1 SDK under its own license ([LICENSE-HL1-SDK.txt](LICENSE-HL1-SDK.txt)) – free distribution only, for use with Half-Life. Third-party notices: [NOTICE.txt](NOTICE.txt). Not affiliated with Valve; no Valve game data included – you need your own copy of Half-Life.
 
+### Thor Half-Life – quick start
+
+▶ **[Watch the install guide](https://youtu.be/_ym4_NXosSs)** (2 min) · **[Full video](https://youtu.be/jiYEW7FgMcQ)**
+
+1. Install the APK from the [releases](https://github.com/harmssi/thor-halflife/releases) (Chrome: *Download anyway* → *Package installer* → *Settings* → *Allow from this source* → *Install*).
+2. Copy `steamapps/common/Half-Life/valve` from your Steam installation to `/sdcard/xash/valve`. For Opposing Force / Blue Shift put `gearbox` / `bshift` next to it (`*_hd` folders optional).
+3. Start the app and tap **Allow file access**.
+4. Play.
+
+If it works for you, a ⭐ on GitHub helps.
+
 > [!CAUTION]
 > **Only download Xash3D FWGS from official sources.** Third-party builds, "modded launchers", "optimized" repacks and random mirrors are frequently bundled with malware, miners, spyware and credential stealers. We cannot vouch for anything we did not build. Get official binaries only from the [releases page](https://github.com/FWGS/xash3d-fwgs/releases/tag/continuous).
 
