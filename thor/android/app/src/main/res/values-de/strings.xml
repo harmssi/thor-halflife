@@ -85,4 +85,5 @@
     <string name="deck_no_suit_hint_vest">Schutzweste noch nicht angelegt</string>
     <string name="deck_nightvision">Nachtsicht</string>
     <string name="btn_nightvision">Nachtsicht</string>
+    <string name="deck_dead_hint">Gestorben – Schnellladen oder Menü</string>
 </resources>

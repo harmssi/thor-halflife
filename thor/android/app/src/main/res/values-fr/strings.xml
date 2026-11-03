@@ -85,4 +85,5 @@
     <string name="deck_no_suit_hint_vest">Gilet pas encore équipé</string>
     <string name="deck_nightvision">Vision nocturne</string>
     <string name="btn_nightvision">Vision noct.</string>
+    <string name="deck_dead_hint">Mort – chargement rapide ou menu</string>
 </resources>

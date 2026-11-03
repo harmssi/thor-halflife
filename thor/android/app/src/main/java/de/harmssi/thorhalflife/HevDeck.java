@@ -367,8 +367,9 @@ public class HevDeck extends View {
         c.drawColor(Ui.BG);
         Ui.scanlines(c, getWidth(), getHeight(), paint);
 
-        boolean live = inGame && suit != 0;
-        drawVital(c, pHealth, str(R.string.deck_health), live ? hp : -1, shownHp, 25, hpHitAt, now, true);
+        // dead: the server strips the suit bit, show health 0 instead of "no suit" dashes
+        boolean live = inGame && (suit != 0 || dead != 0);
+        drawVital(c, pHealth, str(R.string.deck_health), live ? Math.max(0, hp) : -1, shownHp, 25, hpHitAt, now, true);
         drawVital(c, pArmor, str(armorLabel()), live ? ap : -1, shownAp, 0, apHitAt, now, false);
         drawStatus(c, now);
         drawArsenal(c, now);
@@ -584,8 +585,9 @@ public class HevDeck extends View {
             }
         }
 
-        if (!inGame || weapons.isEmpty()) {
+        if (!inGame || weapons.isEmpty() || dead != 0) {
             String msg = !connected || !inGame ? str(R.string.deck_standby_hint)
+                    : dead != 0 ? str(R.string.deck_dead_hint)
                     : suit == 0 ? str(noSuitLabel()) : str(R.string.deck_no_weapons);
             body.setColor(Ui.TEXT_2);
             float mw = body.measureText(msg);

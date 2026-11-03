@@ -85,4 +85,5 @@
     <string name="deck_no_suit_hint_vest">Chaleco aún no equipado</string>
     <string name="deck_nightvision">Visión nocturna</string>
     <string name="btn_nightvision">Visión nocturna</string>
+    <string name="deck_dead_hint">Muerto – carga rápida o menú</string>
 </resources>

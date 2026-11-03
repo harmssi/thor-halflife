@@ -101,9 +101,16 @@ static bool HasWeapon( WEAPON *p )
 	return p && p->iId > 0 && p->iId < 32 && ( gHUD.m_iWeaponBits & ( 1 << p->iId ));
 }
 
+// m_fPlayerDead is only set by CurWeapon(-1,-1), which CHudAmmo::MsgFunc_CurWeapon returns before
+// reaching (iId < 1); on death the server also strips the suit bit, so health is the reliable signal
+static bool Dead( void )
+{
+	return gHUD.m_fPlayerDead || gHUD.m_Health.m_iHealth <= 0;
+}
+
 static bool CanSelect( void )
 {
-	if( gHUD.m_fPlayerDead || ( gHUD.m_iHideHUDDisplay & ( HIDEHUD_WEAPONS | HIDEHUD_ALL )))
+	if( Dead() || ( gHUD.m_iHideHUDDisplay & ( HIDEHUD_WEAPONS | HIDEHUD_ALL )))
 		return false;
 	if( !( gHUD.m_iWeaponBits & ( 1 << WEAPON_SUIT )))
 		return false;
@@ -382,7 +389,7 @@ static void BuildSnapshot( float now )
 
 	o.add( "{\"v\":1,\"seq\":%d,\"t\":%.2f,\"map\":\"%s\",\"deck\":%d,", ++g_seq, now, map, ThorDeck_HideHud() ? 1 : 0 );
 	o.add( "\"hp\":%d,\"ap\":%d,\"suit\":%d,\"dead\":%d,\"hide\":%d,", gHUD.m_Health.m_iHealth, ThorDeckAccess::Battery(),
-		suit, gHUD.m_fPlayerDead ? 1 : 0, gHUD.m_iHideHUDDisplay );
+		suit, Dead() ? 1 : 0, gHUD.m_iHideHUDDisplay );
 	o.add( "\"fl\":%d,\"flbat\":%d,\"dmg\":%d,\"geiger\":%d,\"train\":%d,", ThorDeckAccess::FlashOn(), ThorDeckAccess::FlashBat(),
 		ThorDeckAccess::DamageBits(), ThorDeckAccess::Geiger(), ThorDeckAccess::Train());
 	o.add( "\"pain\":[%.2f,%.2f,%.2f,%.2f],", ThorDeckAccess::Attack( 0 ), ThorDeckAccess::Attack( 1 ), ThorDeckAccess::Attack( 2 ), ThorDeckAccess::Attack( 3 ));
