@@ -1,0 +1,29 @@
+Thor Half-Life - third-party components
+
+Xash3D FWGS engine (libxash, libref_*, libfilesystem_stdio)
+  Copyright (C) Uncle Mike, Flying With Gauss and contributors. GPL-3.0-or-later (see GPL-3.0.txt).
+  Source: https://github.com/FWGS/xash3d-fwgs
+
+mainui_cpp (libmenu)
+  Copyright (C) Id Software, a1batross and contributors. GPL-2.0-or-later (see GPL-3.0.txt).
+  Source: https://github.com/FWGS/mainui_cpp
+
+hlsdk-portable (libclient_android_arm64, libhl_android_arm64)
+  Half Life 1 SDK Copyright (c) Valve Corp. Distributed free of charge under the
+  Half Life 1 SDK LICENSE (see HalfLife1-SDK-LICENSE.txt), for use with Half-Life only.
+  Modified for Thor Half-Life (cl_dll/thor_deck.*: HUD snapshot for the second screen).
+  Source: https://github.com/FWGS/hlsdk-portable (branch mobile_hacks)
+
+freevgui (statically linked into the client library)
+  See freevgui-LICENSE.txt. Source: https://github.com/FWGS/freevgui
+
+SDL2 2.32.8 - zlib license. Copyright (C) 1997-2025 Sam Lantinga.
+  Source: https://libsdl.org
+
+Inter and JetBrains Mono fonts - SIL Open Font License 1.1 (see *-OFL.txt).
+
+Thor Half-Life app code (Java deck/launcher, thorbridge) - GPL-3.0-or-later, (c) harmssi.
+Parts of GameActivity are adapted from FWGS XashActivity (GPL-3.0).
+
+Half-Life is a trademark of Valve Corporation. This app is not affiliated with or endorsed by
+Valve. No Valve game data, logos or artwork are included; you need your own copy of Half-Life.

@@ -1,4 +1,6 @@
-> **Thor Half-Life** (AYN Thor dual-screen port with HEV deck): see [thor/README.md](thor/README.md). Branch `thor`, local only.
+> **Thor Half-Life** – AYN Thor dual-screen port of Xash3D FWGS with an HEV deck on the bottom screen. See [thor/README.md](thor/README.md) and the [releases](https://github.com/harmssi/thor-halflife/releases).
+>
+> **Licenses:** engine GPL-3.0 ([LICENSE](LICENSE)); game libraries from the Half-Life 1 SDK under its own license ([LICENSE-HL1-SDK.txt](LICENSE-HL1-SDK.txt)) – free distribution only, for use with Half-Life. Third-party notices: [NOTICE.txt](NOTICE.txt). Not affiliated with Valve; no Valve game data included – you need your own copy of Half-Life.
 
 > [!CAUTION]
 > **Only download Xash3D FWGS from official sources.** Third-party builds, "modded launchers", "optimized" repacks and random mirrors are frequently bundled with malware, miners, spyware and credential stealers. We cannot vouch for anything we did not build. Get official binaries only from the [releases page](https://github.com/FWGS/xash3d-fwgs/releases/tag/continuous).
