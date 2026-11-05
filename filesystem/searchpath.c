@@ -815,8 +815,30 @@ Return the searchpath where the file was found (or NULL)
 and the file index in the package if relevant
 ====================
 */
+/*
+==================
+FS_IsTransitionFile
+
+save/*.HL1..HL3 are per-session level-transition files; ClearSaveDir only wipes the
+writable dir, so stale copies in a read-only gamedir (e.g. a copied Steam valve/save)
+would be loaded on changelevel and leave scripted trains stuck. Never read them from there.
+==================
+*/
+static qboolean FS_IsTransitionFile( const char *name )
+{
+	const char *ext;
+
+	if( Q_strnicmp( name, DEFAULT_SAVE_DIRECTORY, sizeof( DEFAULT_SAVE_DIRECTORY ) - 1 ))
+		return false;
+
+	ext = COM_FileExtension( name );
+	return !Q_strnicmp( ext, "hl", 2 ) && ext[2] && !ext[3];
+}
+
 searchpath_t *FS_FindFile( const char *name, int *index, char *fixedname, size_t len, uint32_t flags )
 {
+	qboolean skip_ro = FS_IsTransitionFile( name );
+
 	searchpath_t *search;
 
 	// search through the path, one element at a time
@@ -825,6 +847,9 @@ searchpath_t *FS_FindFile( const char *name, int *index, char *fixedname, size_t
 		int pack_ind;
 
 		if( flags && !FBitSet( search->flags, flags ))
+			continue;
+
+		if( skip_ro && FBitSet( search->flags, FS_GAMERODIR_PATH ))
 			continue;
 
 		pack_ind = search->pfnFindFile( search, name, fixedname, len );
@@ -1027,6 +1052,9 @@ search_t *FS_Search( const char *pattern, int caseinsensitive, int gamedironly )
 	for( searchpath_t *searchpath = fs_searchpaths; searchpath; searchpath = searchpath->next )
 	{
 		if( gamedironly && !FBitSet( searchpath->flags, FS_GAMEDIRONLY_SEARCH_FLAGS ))
+			continue;
+
+		if( FBitSet( searchpath->flags, FS_GAMERODIR_PATH ) && FS_IsTransitionFile( pattern ))
 			continue;
 
 		searchpath->pfnSearch( searchpath, &resultlist, pattern, caseinsensitive );
