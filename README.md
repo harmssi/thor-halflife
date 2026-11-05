@@ -8,6 +8,8 @@
 
 Made a video about this? [Open an issue](../../issues/new) and I'll link it here.
 
+**All Thor ports: [toravo.de/en/thor](https://toravo.de/en/thor/)**
+
 1. Install the APK from the [releases](https://github.com/harmssi/thor-halflife/releases) (Chrome: *Download anyway* → *Package installer* → *Settings* → *Allow from this source* → *Install*).
 2. Copy `steamapps/common/Half-Life/valve` from your Steam installation to `/sdcard/xash/valve`. For Opposing Force / Blue Shift put `gearbox` / `bshift` next to it (`*_hd` folders optional).
 3. Start the app and tap **Allow file access**.
