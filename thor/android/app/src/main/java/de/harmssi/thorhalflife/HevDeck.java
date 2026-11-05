@@ -110,17 +110,37 @@ public class HevDeck extends View {
     private String toast;
     private long toastAt;
 
+    // saves tab (replaces the arsenal panel): engine save list, tap twice = load, SAVE = "save new"
+    private final java.io.File saveDir;
+    private boolean savesTab;
+    private List<Saves.Entry> saves = new ArrayList<>();
+    private final List<RectF> saveBounds = new ArrayList<>();
+    private final RectF tabArsenal = new RectF(), tabSaves = new RectF(), newSave = new RectF(), savesArea = new RectF();
+    private long savesScanAt;
+    private float savesScroll, downY, downScroll;
+    private int downSave = -1;
+    private boolean downTab, dragging, downInSaves;
+    private String armedSave;
+    private long armedSaveAt;
+    private final RectF shotSrc = new RectF();
+
     private final Runnable tick = new Runnable() {
         @Override
         public void run() {
             poll();
+            if (savesTab && SystemClock.uptimeMillis() - savesScanAt > 1000) {
+                // shortcut: scans + decodes new save shots on the UI thread (a few small files), move to a worker if lists get long
+                saves = Saves.scan(saveDir);
+                savesScanAt = SystemClock.uptimeMillis();
+            }
             invalidate();
             handler.postDelayed(this, 50);
         }
     };
 
-    public HevDeck(Context context, String clientLib, String game, String rodir) {
+    public HevDeck(Context context, String clientLib, String game, String rodir, java.io.File saveDir) {
         super(context);
+        this.saveDir = saveDir;
         this.clientLib = clientLib;
         this.game = game == null ? "valve" : game;
         this.sprites = new HudSprites(rodir, this.game, this::postInvalidate);
@@ -532,8 +552,11 @@ public class HevDeck extends View {
     private void drawArsenal(Canvas c, long now) {
         RectF r = pArsenal;
         Ui.panel(c, r, Ui.RADIUS * s, Ui.PANEL, Ui.LINE, paint);
-        float x0 = r.left + 24 * s;
-        label(c, str(R.string.deck_arsenal), x0, r.top + 36 * s);
+        drawTabs(c, r);
+        if (savesTab) {
+            drawSaves(c, r, now);
+            return;
+        }
         Weapon curW = null;
         for (Weapon w : weapons) {
             if (w.id == cur) {
@@ -594,6 +617,106 @@ public class HevDeck extends View {
             RectF box = new RectF(r.centerX() - mw / 2 - 28 * s, r.centerY() - 30 * s, r.centerX() + mw / 2 + 28 * s, r.centerY() + 30 * s);
             Ui.panel(c, box, Ui.RADIUS_SM * s, Ui.alpha(Ui.BG_2, 0.94f), Ui.LINE_2, paint);
             c.drawText(msg, r.centerX() - mw / 2, r.centerY() + 7 * s, body);
+        }
+    }
+
+    private void drawTabs(Canvas c, RectF r) {
+        float x = r.left + 24 * s;
+        String[] t = {str(R.string.deck_arsenal).toUpperCase(), str(R.string.deck_saves).toUpperCase()};
+        RectF[] hit = {tabArsenal, tabSaves};
+        for (int i = 0; i < 2; i++) {
+            boolean on = savesTab == (i == 1);
+            float w = micro.measureText(t[i]);
+            hit[i].set(x - 16 * s, r.top, x + w + 16 * s, r.top + 56 * s);
+            micro.setColor(on ? Ui.AMBER_2 : Ui.TEXT_3);
+            c.drawText(t[i], x, r.top + 36 * s, micro);
+            if (on) {
+                paint.setColor(Ui.AMBER);
+                c.drawRect(x, r.top + 44 * s, x + w, r.top + 46 * s, paint);
+            }
+            x += w + 32 * s;
+        }
+        micro.setColor(Ui.TEXT_3);
+    }
+
+    private void drawSaves(Canvas c, RectF r, long now) {
+        // SAVE button (top right)
+        boolean canSave = inGame && dead == 0;
+        String st = str(R.string.btn_save).toUpperCase();
+        float bw = chipText.measureText(st) + 48 * s;
+        newSave.set(r.right - 16 * s - bw, r.top + 12 * s, r.right - 16 * s, r.top + 52 * s);
+        boolean pressed = pressedButton == 100 && now - pressAt < 220;
+        Ui.panel(c, newSave, newSave.height() / 2, pressed ? Ui.alpha(Ui.AMBER, 0.22f) : Ui.alpha(Ui.AMBER, canSave ? 0.12f : 0.04f),
+                canSave ? Ui.AMBER : Ui.LINE, paint);
+        chipText.setColor(canSave ? Ui.AMBER_2 : Ui.TEXT_3);
+        c.drawText(st, newSave.centerX() - chipText.measureText(st) / 2, newSave.centerY() + 5 * s, chipText);
+
+        savesArea.set(r.left + 16 * s, r.top + 60 * s, r.right - 16 * s, r.bottom - 16 * s);
+        saveBounds.clear();
+        if (saves.isEmpty()) {
+            String msg = str(R.string.deck_no_saves);
+            c.drawText(msg, savesArea.centerX() - bodyDim.measureText(msg) / 2, savesArea.centerY(), bodyDim);
+            return;
+        }
+        float gap = 12 * s;
+        float cw = (savesArea.width() - gap) / 2, ch = (savesArea.height() - 2 * gap) / 3;
+        int rowsN = (saves.size() + 1) / 2;
+        float maxScroll = Math.max(0, rowsN * (ch + gap) - gap - savesArea.height());
+        savesScroll = Math.max(0, Math.min(maxScroll, savesScroll));
+        java.text.DateFormat df = java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.MEDIUM, java.text.DateFormat.SHORT);
+        boolean armedLive = armedSave != null && now - armedSaveAt < 2500;
+        c.save();
+        c.clipRect(savesArea);
+        for (int i = 0; i < saves.size(); i++) {
+            Saves.Entry e = saves.get(i);
+            float x = savesArea.left + (i % 2) * (cw + gap), y = savesArea.top + (i / 2) * (ch + gap) - savesScroll;
+            RectF b = new RectF(x, y, x + cw, y + ch);
+            saveBounds.add(b);
+            if (b.bottom < savesArea.top || b.top > savesArea.bottom) {
+                continue;
+            }
+            boolean armed = armedLive && e.name.equals(armedSave);
+            Ui.panel(c, b, Ui.RADIUS_SM * s, armed ? Ui.alpha(Ui.AMBER, 0.13f) : Ui.BG_2, armed ? Ui.AMBER : Ui.LINE, paint);
+            // save shot, centre-cropped to 4:3
+            float th = ch - 16 * s, tw = th * 4 / 3;
+            RectF dst = new RectF(b.left + 8 * s, b.top + 8 * s, b.left + 8 * s + tw, b.top + 8 * s + th);
+            if (e.shot != null) {
+                float bwid = e.shot.getWidth(), bh = e.shot.getHeight();
+                float want = bwid / bh > 4f / 3 ? bh * 4 / 3 : bwid;
+                float wantH = bwid / bh > 4f / 3 ? bh : bwid * 3 / 4;
+                shotSrc.set((bwid - want) / 2, (bh - wantH) / 2, (bwid + want) / 2, (bh + wantH) / 2);
+                android.graphics.Rect src = new android.graphics.Rect();
+                shotSrc.round(src);
+                c.drawBitmap(e.shot, src, dst, iconPaint);
+            } else {
+                paint.setColor(Ui.PANEL_2);
+                c.drawRect(dst, paint);
+            }
+            float tx = dst.right + 16 * s, tmax = b.right - 14 * s - tx;
+            String ch2 = Names.chapter(e.map);
+            bodySemi.setTextSize(19 * s);
+            bodySemi.setColor(armed ? Ui.AMBER_2 : Ui.TEXT);
+            c.drawText(ellipsize(ch2 != null ? ch2 : e.map.isEmpty() ? e.name : e.map, bodySemi, tmax), tx, b.top + 34 * s, bodySemi);
+            monoSmall.setColor(Ui.TEXT_3);
+            c.drawText(e.map.toUpperCase(), tx, b.top + 62 * s, monoSmall);
+            String tag = e.name.toLowerCase().startsWith("quick") ? "QUICK" : e.name.toLowerCase().startsWith("autosave") ? "AUTO" : e.name;
+            monoSmall.setColor(tag.equals(e.name) ? Ui.TEXT_3 : Ui.TEAL_2);
+            c.drawText(tag, b.right - 14 * s - monoSmall.measureText(tag), b.top + 62 * s, monoSmall);
+            if (armed) {
+                chipText.setColor(Ui.AMBER_2);
+                c.drawText(str(R.string.deck_tap_to_load).toUpperCase(), tx, b.bottom - 16 * s, chipText);
+            } else {
+                monoSmall.setColor(Ui.TEXT_2);
+                c.drawText(df.format(new java.util.Date(e.time)), tx, b.bottom - 16 * s, monoSmall);
+            }
+        }
+        c.restore();
+        if (maxScroll > 0) {
+            // scroll indicator
+            float vh = savesArea.height(), total = vh + maxScroll;
+            float bh2 = vh * vh / total, by = savesArea.top + (vh - bh2) * savesScroll / maxScroll;
+            paint.setColor(Ui.alpha(Ui.AMBER, 0.5f));
+            c.drawRect(r.right - 8 * s, by, r.right - 5 * s, by + bh2, paint);
         }
     }
 
@@ -956,6 +1079,28 @@ public class HevDeck extends View {
             case MotionEvent.ACTION_DOWN:
                 downButton = -1;
                 downWeapon = null;
+                downSave = -1;
+                dragging = false;
+                downInSaves = false;
+                downTab = tabArsenal.contains(x, y) || tabSaves.contains(x, y);
+                if (savesTab && newSave.contains(x, y)) {
+                    downButton = 100;
+                    pressedButton = 100;
+                    pressAt = SystemClock.uptimeMillis();
+                    invalidate();
+                    return true;
+                }
+                if (savesTab && savesArea.contains(x, y)) {
+                    downInSaves = true;
+                    downY = y;
+                    downScroll = savesScroll;
+                    for (int i = 0; i < saveBounds.size(); i++) {
+                        if (saveBounds.get(i).contains(x, y)) {
+                            downSave = i;
+                        }
+                    }
+                    return true;
+                }
                 for (int i = 0; i < buttons.length; i++) {
                     if (buttons[i].contains(x, y)) {
                         downButton = i;
@@ -976,8 +1121,32 @@ public class HevDeck extends View {
                 }
                 invalidate();
                 return true;
+            case MotionEvent.ACTION_MOVE:
+                if (savesTab && downInSaves) {
+                    if (Math.abs(y - downY) > 16 * s) {
+                        dragging = true;
+                    }
+                    if (dragging) {
+                        savesScroll = downScroll - (y - downY);
+                        invalidate();
+                    }
+                }
+                return true;
             case MotionEvent.ACTION_UP:
-                if (downButton >= 0 && buttons[downButton].contains(x, y)) {
+                if (downTab && (tabArsenal.contains(x, y) || tabSaves.contains(x, y))) {
+                    boolean want = tabSaves.contains(x, y);
+                    if (want != savesTab) {
+                        savesTab = want;
+                        savesScanAt = 0;
+                        savesScroll = 0;
+                        performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+                    }
+                } else if (downButton == 100 && newSave.contains(x, y)) {
+                    newSaveGame();
+                } else if (downSave >= 0 && !dragging && downSave < saves.size() && downSave < saveBounds.size()
+                        && saveBounds.get(downSave).contains(x, y)) {
+                    tapSave(saves.get(downSave));
+                } else if (downButton >= 0 && downButton < buttons.length && buttons[downButton].contains(x, y)) {
                     button(downButton);
                 } else if (downWeapon != null && downWeapon.bounds.contains(x, y)) {
                     selectWeapon(downWeapon);
@@ -989,6 +1158,8 @@ public class HevDeck extends View {
             case MotionEvent.ACTION_CANCEL:
                 downButton = -1;
                 downWeapon = null;
+                downSave = -1;
+                downTab = false;
                 return true;
             default:
                 return true;
@@ -1044,6 +1215,33 @@ public class HevDeck extends View {
                 break;
             default:
                 break;
+        }
+    }
+
+    private void newSaveGame() {
+        if (!inGame || dead != 0) {
+            return;
+        }
+        performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+        send("save new"); // engine picks the next free saveNNN name, never overwrites
+        showToast(str(R.string.toast_game_saved));
+        savesScroll = 0;
+        savesScanAt = SystemClock.uptimeMillis() - 500; // rescan in ~0.5 s, after the game thread wrote it
+    }
+
+    private void tapSave(Saves.Entry e) {
+        if (!connected) {
+            return;
+        }
+        long now = SystemClock.uptimeMillis();
+        performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+        if (e.name.equals(armedSave) && now - armedSaveAt < 2500) {
+            armedSave = null;
+            send("load " + e.name);
+            showToast(str(R.string.toast_loading_save));
+        } else {
+            armedSave = e.name;
+            armedSaveAt = now;
         }
     }
 

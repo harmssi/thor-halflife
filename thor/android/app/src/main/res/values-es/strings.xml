@@ -72,6 +72,12 @@
     <string name="btn_confirm">Toca otra vez</string>
     <string name="toast_saved">Guardado rápido</string>
     <string name="toast_loading">Cargando guardado rápido</string>
+    <string name="deck_saves">Partidas</string>
+    <string name="btn_save">Guardar</string>
+    <string name="deck_no_saves">Aún no hay partidas</string>
+    <string name="deck_tap_to_load">Toca otra vez para cargar</string>
+    <string name="toast_game_saved">Partida guardada</string>
+    <string name="toast_loading_save">Cargando partida</string>
     <string name="set_renderer">Renderizador</string>
     <string name="ref_gles3">GLES3 (mejor)</string>
     <string name="ref_gl4es">GL4ES</string>

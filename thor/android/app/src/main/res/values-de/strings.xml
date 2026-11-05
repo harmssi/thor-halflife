@@ -72,6 +72,12 @@
     <string name="btn_confirm">Nochmal tippen</string>
     <string name="toast_saved">Schnellgespeichert</string>
     <string name="toast_loading">Lade Schnellspeicherstand</string>
+    <string name="deck_saves">Spielstände</string>
+    <string name="btn_save">Speichern</string>
+    <string name="deck_no_saves">Noch keine Spielstände</string>
+    <string name="deck_tap_to_load">Nochmal tippen zum Laden</string>
+    <string name="toast_game_saved">Spiel gespeichert</string>
+    <string name="toast_loading_save">Lade Spielstand</string>
     <string name="set_renderer">Renderer</string>
     <string name="ref_gles3">GLES3 (beste)</string>
     <string name="ref_gl4es">GL4ES</string>

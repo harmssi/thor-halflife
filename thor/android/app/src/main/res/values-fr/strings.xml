@@ -72,6 +72,12 @@
     <string name="btn_confirm">Touche encore</string>
     <string name="toast_saved">Sauvegarde rapide</string>
     <string name="toast_loading">Chargement de la sauvegarde rapide</string>
+    <string name="deck_saves">Sauvegardes</string>
+    <string name="btn_save">Sauvegarder</string>
+    <string name="deck_no_saves">Aucune sauvegarde</string>
+    <string name="deck_tap_to_load">Touchez encore pour charger</string>
+    <string name="toast_game_saved">Partie sauvegardée</string>
+    <string name="toast_loading_save">Chargement de la sauvegarde</string>
     <string name="set_renderer">Rendu</string>
     <string name="ref_gles3">GLES3 (meilleur)</string>
     <string name="ref_gl4es">GL4ES</string>

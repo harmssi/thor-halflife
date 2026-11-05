@@ -15,6 +15,7 @@
 #include "pm_defs.h"
 #include "thor_deck.h"
 
+#include <ctype.h>
 #include <math.h>
 #include <pthread.h>
 #include <stdarg.h>
@@ -199,13 +200,26 @@ void ThorDeck_Init( void )
 static bool Allowed( const char *c )
 {
 	static const char *exact[] = {
-		"thor_wnext", "thor_wprev", "thor_use", "impulse 100", "savequick", "loadquick",
+		"thor_wnext", "thor_wprev", "thor_use", "impulse 100", "savequick", "loadquick", "save new",
 		"cancelselect", "togglemenu", "lastinv", "+use", "-use", "thor_deck 0", "thor_deck 1", NULL
 	};
 	for( int i = 0; exact[i]; i++ )
 	{
 		if( !strcmp( c, exact[i] ))
 			return true;
+	}
+	// deck save list: "load <name>" with a plain file name (no paths, no ';' or quotes)
+	if( !strncmp( c, "load ", 5 ))
+	{
+		size_t n = strlen( c + 5 );
+		if( n == 0 || n > 32 )
+			return false;
+		for( const char *p = c + 5; *p; p++ )
+		{
+			if( !isalnum( (unsigned char)*p ) && *p != '_' && *p != '-' )
+				return false;
+		}
+		return true;
 	}
 	if( !strncmp( c, "thor_select ", 12 ))
 	{

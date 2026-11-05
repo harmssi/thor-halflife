@@ -26,7 +26,7 @@ If it works for you, a ⭐ on GitHub helps.
 | Screen | Content |
 | --- | --- |
 | Top (1920x1080) | The game, native resolution, clean: no health/armor/ammo/weapon menu/pickup history. Crosshair, pain indicators, messages and subtitles stay. |
-| Bottom (1240x1080) | HEV deck: health and armor (big mono numbers, segmented bars, red when critical), suit status chip, flashlight charge; arsenal in slot columns 1–5 (Opposing Force 1–7) with clip/reserve/secondary ammo, current weapon highlighted, **tap = select**; pickup feed; hazards (Geiger meter, air timer under water, fire/shock/toxic/acid/cold/drowning/fall/train); compass tape with damage directions; chapter title + breadcrumb automap; quick buttons (flashlight, use, quick save, quick load with confirm, menu). |
+| Bottom (1240x1080) | HEV deck: health and armor (big mono numbers, segmented bars, red when critical), suit status chip, flashlight charge; arsenal in slot columns 1–5 (Opposing Force 1–7) with clip/reserve/secondary ammo, current weapon highlighted, **tap = select**; **Saves** tab next to the arsenal: your save games with save shot, chapter, map and time, **tap twice = load**, *Save* makes a new save (`saveNNN`, never overwrites); pickup feed; hazards (Geiger meter, air timer under water, fire/shock/toxic/acid/cold/drowning/fall/train); compass tape with damage directions; chapter title + breadcrumb automap; quick buttons (flashlight, use, quick save, quick load with confirm, menu). |
 
 Without a second display (or with *Screens: Single* in the launcher) the classic HUD stays on top.
 
@@ -68,7 +68,7 @@ gHUD / gWR / gHR ──► thor_deck.cpp ──► ThorHUD_Snapshot() ──► 
 * Deck actions are **console commands**, queued and executed on the game thread through
   `ClientCmd` — the same path as a key bind. Nothing writes game state directly. Allowed:
   `thor_select <id>`, `thor_wnext`, `thor_wprev`, `thor_use`, `impulse 100`, `savequick`,
-  `loadquick`, `lastinv`, `+use/-use`, `cancelselect`, `thor_deck 0/1`.
+  `loadquick`, `save new`, `load <name>` (letters, digits, `_`, `-` only), `lastinv`, `+use/-use`, `cancelselect`, `thor_deck 0/1`.
 * `thor_select <id>` does exactly what confirming the HUD weapon menu does:
   `ServerCmd("weapon_xxx")` + `g_weaponselect` + the select sound.
 * `thor_wnext` / `thor_wprev` switch instantly (the menu is hidden on the top screen).
@@ -187,6 +187,8 @@ Slot-Spalten 1–5 (Antippen = Waffe wählen, Munition im Magazin/Reserve/Zweitm
 aufgenommene Gegenstände, Gefahren (Geiger, Luft unter Wasser, Feuer, Strom, Gift, Säure, Kälte,
 Ertrinken, Sturz, Zug), einen Kompass, Kapitelname und eine kleine Wegspur-Karte sowie
 Schnelltasten (Lampe, Benutzen, Schnellspeichern, Schnellladen mit Bestätigung, Menü).
+Der Reiter **Spielstände** neben dem Arsenal listet die Speicherstände mit Vorschaubild, Kapitel,
+Karte und Uhrzeit: zweimal antippen = laden, *Speichern* legt einen neuen Stand an (`saveNNN`).
 
 * Spiele: Half-Life, **Opposing Force** und **Blue Shift** (Auswahl im Launcher; ein Spiel ohne
   Daten wird gedimmt angezeigt, die Prüfliste nennt, was fehlt). Bei Opposing Force hat das Deck

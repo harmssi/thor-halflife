@@ -104,7 +104,9 @@ final class ThorScreens implements DisplayManager.DisplayListener {
                 presentation.getContext().getResources().getConfiguration());
         cfg.setLocales(activity.getResources().getConfiguration().getLocales());
         Context deckCtx = presentation.getContext().createConfigurationContext(cfg);
-        deck = new HevDeck(deckCtx, clientLib, game, rodir);
+        String basedir = activity.getIntent().getStringExtra(GameActivity.EXTRA_BASEDIR);
+        java.io.File saveDir = new java.io.File(basedir == null || basedir.isEmpty() ? GameData.DEFAULT_BASEDIR : basedir, game + "/save");
+        deck = new HevDeck(deckCtx, clientLib, game, rodir, saveDir);
         presentation.setContentView(deck);
         presentation.getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
                 | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);

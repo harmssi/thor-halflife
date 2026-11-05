@@ -73,6 +73,12 @@
     <string name="btn_confirm">Tap again</string>
     <string name="toast_saved">Quick save</string>
     <string name="toast_loading">Loading quick save</string>
+    <string name="deck_saves">Saves</string>
+    <string name="btn_save">Save</string>
+    <string name="deck_no_saves">No saves yet</string>
+    <string name="deck_tap_to_load">Tap again to load</string>
+    <string name="toast_game_saved">Game saved</string>
+    <string name="toast_loading_save">Loading save</string>
     <string name="set_renderer">Renderer</string>
     <string name="ref_gles3">GLES3 (best)</string>
     <string name="ref_gl4es">GL4ES</string>
