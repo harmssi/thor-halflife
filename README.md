@@ -4,7 +4,7 @@
 
 ### Thor Half-Life – quick start
 
-▶ **[Watch the install guide](https://youtu.be/_ym4_NXosSs)** (2 min) · **[Full video](https://youtu.be/jiYEW7FgMcQ)**
+▶ **[Watch the install guide](https://youtu.be/_ym4_NXosSs)** (2 min) · **[Showcase video](https://youtu.be/jiYEW7FgMcQ)**
 
 Made a video about this? [Open an issue](../../issues/new) and I'll link it here.
 
@@ -15,7 +15,7 @@ Made a video about this? [Open an issue](../../issues/new) and I'll link it here
 3. Start the app and tap **Allow file access**.
 4. Play.
 
-If it works for you, a ⭐ on GitHub helps.
+If it works for you, a ⭐ on GitHub helps – and [subscribing on YouTube](https://www.youtube.com/@toravomusic?sub_confirmation=1) helps me bring more ports to the Thor.
 
 > [!CAUTION]
 > **Only download Xash3D FWGS from official sources.** Third-party builds, "modded launchers", "optimized" repacks and random mirrors are frequently bundled with malware, miners, spyware and credential stealers. We cannot vouch for anything we did not build. Get official binaries only from the [releases page](https://github.com/FWGS/xash3d-fwgs/releases/tag/continuous).
