@@ -6,6 +6,12 @@
 
 ▶ **[Watch the install guide](https://youtu.be/_ym4_NXosSs)** (2 min) · **[Showcase video](https://youtu.be/jiYEW7FgMcQ)**
 
+| Playing (top + bottom screen) | Save games on the deck |
+|---|---|
+| ![Half-Life on the top screen, HEV deck with health, armour, suit status and the arsenal on the bottom screen](thor/screenshots/ingame-arsenal.jpg) | ![HEV deck with the Saves tab: save games with save shot, chapter, map and date](thor/screenshots/deck-saves.jpg) |
+
+<sub>Real screenshots from an AYN Thor, Thor Half-Life 0.2.0 (deck language follows the system language, German here).</sub>
+
 Made a video about this? [Open an issue](../../issues/new) and I'll link it here.
 
 **All Thor ports: [toravo.de/en/thor](https://toravo.de/en/thor/)**
